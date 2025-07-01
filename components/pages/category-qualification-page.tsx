@@ -4,6 +4,7 @@ import { Menu, MoreVertical, Play } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useRef, useEffect } from "react"
 import { ChatInput } from "@/components/ui-custom"
+import { ChatConversationPage } from "@/components/pages"
 
 interface CategoryQualificationPageProps {
   category: string
@@ -20,6 +21,15 @@ export default function CategoryQualificationPage({ category, onBack }: Category
   const [userAnswers, setUserAnswers] = useState<string[]>([])
   const [showInitialMessage, setShowInitialMessage] = useState(true)
   const [inputValue, setInputValue] = useState("")
+  const [isChatMode, setIsChatMode] = useState(false)
+  const [existingMessages, setExistingMessages] = useState<any[]>([])
+  const [userProfile, setUserProfile] = useState({
+    country: 'France',
+    age: 25,
+    status: 'resident',
+    language: 'fr'
+  })
+  const [sessionId, setSessionId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Fonction pour faire défiler vers le bas
@@ -54,6 +64,29 @@ export default function CategoryQualificationPage({ category, onBack }: Category
           answers: [
             { text: "Oui", emoji: "👍", value: "yes" },
             { text: "Non", emoji: "👎", value: "no" },
+          ],
+        },
+      ],
+      Formation: [
+        {
+          question: "Êtes-vous actuellement étudiant en France ?",
+          answers: [
+            { text: "Oui", emoji: "👍", value: "yes" },
+            { text: "Non", emoji: "👎", value: "no" },
+          ],
+        },
+        {
+          question: "Avez-vous un niveau de français suffisant pour suivre une formation ?",
+          answers: [
+            { text: "Oui", emoji: "👍", value: "yes" },
+            { text: "Non", emoji: "👎", value: "no" },
+          ],
+        },
+        {
+          question: "Souhaitez-vous suivre une formation professionnelle ou académique ?",
+          answers: [
+            { text: "Professionnelle", emoji: "🔧", value: "professional" },
+            { text: "Académique", emoji: "📚", value: "academic" },
           ],
         },
       ],
@@ -138,6 +171,25 @@ export default function CategoryQualificationPage({ category, onBack }: Category
       // Qualification terminée - afficher les suggestions finales
       setCurrentStep(currentStep + 1) // Pour déclencher l'affichage des suggestions
     }
+  }
+
+  const handleSendMessage = (message: string) => {
+    // Enrichir le contexte avec les réponses de qualification
+    const qualificationContext = userAnswers.map((answer, index) => {
+      const step = qualificationSteps[index]
+      return `${step.question} -> ${answer}`
+    }).join('\n')
+
+    const messageForApi = `Contexte de qualification (${category}):\n${qualificationContext}\n\nQuestion de l'utilisateur: ${message}`
+
+    setExistingMessages([{
+      id: Date.now().toString(),
+      content: message, // Affiche seulement la question de l'utilisateur
+      fullContentForApi: messageForApi, // Envoie le contexte + la question à l'IA
+      isUser: true,
+      timestamp: new Date()
+    }])
+    setIsChatMode(true)
   }
 
   const renderMessages = () => {
@@ -234,7 +286,21 @@ export default function CategoryQualificationPage({ category, onBack }: Category
 
     // Suggestions finales après qualification terminée
     if (currentStep >= qualificationSteps.length && userAnswers.length === qualificationSteps.length) {
-      const finalSuggestions = ["J'ai perdu ma carte vitale", "Renouveler ma carte vitale", "Obtenir une carte vitale"]
+      // Suggestions spécifiques selon la catégorie
+      let finalSuggestions: string[] = []
+      
+      if (category === "Formation") {
+        finalSuggestions = [
+          "Comment s'inscrire à une formation professionnelle ?",
+          "Quelles sont les aides financières pour la formation ?",
+          "Comment apprendre le français gratuitement ?",
+          "Formations pour les demandeurs d'asile"
+        ]
+      } else if (category === "Santé") {
+        finalSuggestions = ["J'ai perdu ma carte vitale", "Renouveler ma carte vitale", "Obtenir une carte vitale"]
+      } else {
+        finalSuggestions = ["J'ai perdu ma carte vitale", "Renouveler ma carte vitale", "Obtenir une carte vitale"]
+      }
 
       messages.push(
         <div key="final-suggestions" className="mb-8">
@@ -264,6 +330,18 @@ export default function CategoryQualificationPage({ category, onBack }: Category
     return messages
   }
 
+  if (isChatMode) {
+    return (
+      <ChatConversationPage 
+        userProfile={userProfile}
+        sessionId={sessionId}
+        onBack={() => setIsChatMode(false)}
+        onSessionUpdate={setSessionId}
+        initialMessages={existingMessages}
+      />
+    )
+  }
+
   return (
     <div className="min-h-screen bg-[#ffffff] flex flex-col pb-24">
       {/* Header */}
@@ -285,27 +363,21 @@ export default function CategoryQualificationPage({ category, onBack }: Category
       </header>
 
       {/* Chat Content */}
-      <div className="flex-1 flex justify-center overflow-hidden">
-        <div className="w-full max-w-2xl p-6 flex flex-col">
-          {/* Assistant Header */}
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-sm">😊</div>
-            <span className="text-base font-medium text-[#414143]">Assistant Triptik</span>
-          </div>
+      <main className="max-w-2xl mx-auto px-6 py-4 mb-20">
+        <div ref={messagesEndRef} className="space-y-4">
+          {renderMessages()}
+        </div>
+      </main>
 
-          {/* Messages Container - Scrollable */}
-          <div className="flex-1 overflow-y-auto">
-            <div className="space-y-4">
-              {renderMessages()}
-              {/* Référence pour le défilement automatique */}
-              <div ref={messagesEndRef} />
-            </div>
-          </div>
+      {/* Barre de chat fixe en bas, toujours visible */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
+        <div className="max-w-2xl mx-auto">
+          <ChatInput
+            onSendMessage={handleSendMessage}
+            placeholder="Posez votre question ou répondez ci-dessus..."
+          />
         </div>
       </div>
-
-      {/* Fixed Chat Input */}
-      <ChatInput onSendMessage={(message) => setInputValue(message)} />
     </div>
   )
 }

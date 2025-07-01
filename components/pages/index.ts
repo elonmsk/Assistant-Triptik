@@ -6,6 +6,7 @@ export { default as AccompagnePage } from './accompagne-page'
 // Qualification pages
 export { default as AccompagnantQualificationPage } from './accompagnant-qualification-page'
 export { default as CategoryQualificationPage } from './category-qualification-page'
+export { default as ChatConversationPage } from './chat-conversation-page'
 
 // Account pages
 export { default as CreateAccountPage } from './create-account-page'

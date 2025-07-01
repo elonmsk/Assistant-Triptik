@@ -3,13 +3,14 @@
 import { Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
-import { AccompagneSideMenu, ChatInput } from "@/components/ui-custom"
+import { AccompagneSideMenu, IntelligentChatWrapper } from "@/components/ui-custom"
 import {
   CreateAccountPage,
   MyProceduresPage,
   MyAppointmentsPage,
   LanguagesPage,
-  CategoryQualificationPage
+  CategoryQualificationPage,
+  ChatConversationPage
 } from "@/components/pages"
 
 export default function AccompagnePage() {
@@ -20,24 +21,89 @@ export default function AccompagnePage() {
   const [showLanguages, setShowLanguages] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  
+  // États pour le chat intelligent avec LLM+MCP
+  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [isChatMode, setIsChatMode] = useState(false)
+  const [existingMessages, setExistingMessages] = useState<any[]>([])
+  
+  // Profil utilisateur intelligent basé sur le contexte
+  const getUserProfile = () => {
+    // Profil de base
+    let profile = {
+      country: 'France',
+      age: 25,
+      status: 'resident',
+      language: 'fr'
+    }
+    
+    // Adapter le profil selon le contexte
+    if (!isLoggedIn) {
+      // Pour les utilisateurs non connectés, on peut être plus générique
+      profile.status = 'visitor'
+    }
+    
+    // Adapter selon la catégorie sélectionnée pour des réponses plus ciblées
+    if (selectedCategory) {
+      switch (selectedCategory) {
+        case 'Santé':
+          // Le profil reste tel quel pour la santé
+          break
+        case 'Emploi':
+          profile.status = isLoggedIn ? 'job_seeker' : 'unemployed'
+          break
+        case 'Formation':
+          profile.status = 'student'
+          profile.age = 22 // Âge moyen d'un étudiant
+          break
+        case 'Famille':
+          profile.status = 'parent'
+          break
+        case 'Logement':
+          profile.status = 'housing_seeker'
+          break
+        case 'Juridique':
+          profile.status = 'legal_help'
+          break
+        case 'Handicap':
+          profile.status = 'disabled'
+          break
+        case 'Aides':
+          profile.status = 'benefit_seeker'
+          break
+      }
+    }
+    
+    // TODO: Ici vous pourrez ajouter de la logique pour détecter :
+    // - Le pays d'origine selon les préférences de langue
+    // - L'âge selon les informations du profil utilisateur sauvegardé
+    // - Le statut plus précis selon les démarches en cours
+    
+    return profile
+  }
+  
+  const [userProfile, setUserProfile] = useState(getUserProfile())
+  
+  // Mettre à jour le profil quand la catégorie ou le statut de connexion change
+  const updateUserProfile = () => {
+    setUserProfile(getUserProfile())
+  }
 
   const handleAccountCreationComplete = () => {
     // User has completed account creation and profile setup
     setIsLoggedIn(true)
     setShowCreateAccount(false)
+    updateUserProfile() // Mettre à jour le profil
   }
 
   const handleCategoryClick = (categoryName: string) => {
     setSelectedCategory(categoryName)
+    updateUserProfile() // Mettre à jour le profil selon la catégorie
   }
 
   const handleBackFromQualification = () => {
     setSelectedCategory(null)
-  }
-
-  const handleSendMessage = (message: string) => {
-    console.log("Message envoyé:", message)
-    // Ici vous pouvez ajouter la logique pour traiter le message
+    updateUserProfile() // Remettre le profil par défaut
   }
 
   if (showCreateAccount) {
@@ -60,13 +126,26 @@ export default function AccompagnePage() {
     return <LanguagesPage onBack={() => setShowLanguages(false)} />
   }
 
+  // Mode chat - utilise la même interface que les sections thématiques
+  if (isChatMode) {
+    return (
+      <ChatConversationPage 
+        userProfile={userProfile}
+        sessionId={sessionId}
+        onBack={() => setIsChatMode(false)}
+        onSessionUpdate={setSessionId}
+        initialMessages={existingMessages}
+      />
+    )
+  }
+
   const categories = [
     { name: "Santé", icon: "🏥" },
     { name: "Emploi", icon: "💼" },
     { name: "Famille", icon: "👨‍👩‍👧‍👦" },
     { name: "Formation", icon: "🇫🇷" },
     { name: "Logement", icon: "🏠" },
-    { name: "Éducation", icon: "📚" },
+    { name: "Éducation", icon: "🎓" },
     { name: "Juridique", icon: "⚖️" },
     { name: "Transport", icon: "🚌" },
     { name: "Démarches", icon: "📋" },
@@ -167,8 +246,16 @@ export default function AccompagnePage() {
         )}
       </main>
 
-      {/* Fixed Chat Input */}
-      <ChatInput onSendMessage={handleSendMessage} />
+      {/* Fixed Intelligent Chat Input */}
+      <IntelligentChatWrapper 
+        userProfile={userProfile}
+        sessionId={sessionId}
+        onSessionUpdate={setSessionId}
+        onFirstMessage={(messages) => {
+          setExistingMessages(messages)
+          setIsChatMode(true)
+        }}
+      />
 
       <AccompagneSideMenu
         isOpen={isMenuOpen}

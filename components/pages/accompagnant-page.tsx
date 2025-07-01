@@ -48,7 +48,7 @@ export default function AccompagnantPage() {
     { name: "Famille", icon: "👨‍👩‍👧‍👦" },
     { name: "Formation", icon: "🇫🇷" },
     { name: "Logement", icon: "🏠" },
-    { name: "Éducation", icon: "📚" },
+    { name: "Éducation", icon: "🎓" },
     { name: "Juridique", icon: "⚖️" },
     { name: "Transport", icon: "🚌" },
     { name: "Démarches", icon: "📋" },

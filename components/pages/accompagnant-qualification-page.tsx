@@ -57,6 +57,29 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
           ],
         },
       ],
+      Formation: [
+        {
+          question: "La personne est-elle actuellement étudiante en France ?",
+          answers: [
+            { text: "Oui", emoji: "👍", value: "yes" },
+            { text: "Non", emoji: "👎", value: "no" },
+          ],
+        },
+        {
+          question: "A-t-elle un niveau de français suffisant pour suivre une formation ?",
+          answers: [
+            { text: "Oui", emoji: "👍", value: "yes" },
+            { text: "Non", emoji: "👎", value: "no" },
+          ],
+        },
+        {
+          question: "Souhaite-t-elle suivre une formation professionnelle ou académique ?",
+          answers: [
+            { text: "Professionnelle", emoji: "🔧", value: "professional" },
+            { text: "Académique", emoji: "📚", value: "academic" },
+          ],
+        },
+      ],
       Emploi: [
         {
           question: "La personne a-t-elle déjà travaillé en France ?",
