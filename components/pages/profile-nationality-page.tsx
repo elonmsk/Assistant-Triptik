@@ -1,8 +1,14 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useState } from "react"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { useEffect, useState } from "react"
 
 interface ProfileNationalityPageProps {
   onBack: () => void
@@ -11,6 +17,12 @@ interface ProfileNationalityPageProps {
 
 export default function ProfileNationalityPage({ onBack, onNext }: ProfileNationalityPageProps) {
   const [nationality, setNationality] = useState("")
+  const [numero, setNumero] = useState<string | null>(null)
+
+  useEffect(() => {
+    const stored = localStorage.getItem("uid")
+    if (stored) setNumero(stored)
+  }, [])
 
   const countries = [
     "Afghanistan",
@@ -32,21 +44,41 @@ export default function ProfileNationalityPage({ onBack, onNext }: ProfileNation
     "Ukraine",
   ]
 
-  const handleNext = () => {
-    if (nationality) {
+  const handleNext = async () => {
+    if (!numero || !nationality) {
+      alert("Identifiant ou nationalité manquants.")
+      return
+    }
+
+    try {
+      const res = await fetch("/api/update-nationality", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ numero, nationalite: nationality }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        alert(data.error || "Erreur lors de l'enregistrement.")
+        return
+      }
+
+      console.log("✅ Nationalité enregistrée :", data)
       onNext()
+    } catch (err) {
+      console.error("Erreur API :", err)
+      alert("Erreur réseau")
     }
   }
 
   return (
     <div className="min-h-screen bg-[#ffffff] flex items-center justify-center p-6">
       <div className="w-full max-w-md">
-        {/* Header */}
         <div className="text-center mb-16">
           <h1 className="text-3xl font-bold text-[#414143] mb-16">Mon profil</h1>
         </div>
 
-        {/* Question */}
         <div className="mb-8">
           <label htmlFor="nationality" className="block text-lg font-medium text-[#414143] mb-6">
             Votre nationalité ?
@@ -65,7 +97,6 @@ export default function ProfileNationalityPage({ onBack, onNext }: ProfileNation
           </Select>
         </div>
 
-        {/* Next Button */}
         <Button
           onClick={handleNext}
           disabled={!nationality}

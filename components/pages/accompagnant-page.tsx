@@ -84,7 +84,7 @@ export default function AccompagnantPage() {
             Vous recherchez des informations pour aider les personnes réfugiées
           </p>
           <p className="text-base text-[#73726d] leading-relaxed">
-            Vous pouvez poser directement votre question ou sélectionner une des thématiques ci-dessous
+            Vous pouvez sélectionner une des thématiques ci-dessous ou poser directement votre question.
           </p>
         </div>
 

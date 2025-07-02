@@ -1,10 +1,8 @@
 "use client"
 
-import type React from "react"
-
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 interface ProfileChildrenPageProps {
   onBack: () => void
@@ -13,17 +11,44 @@ interface ProfileChildrenPageProps {
 
 export default function ProfileChildrenPage({ onBack, onNext }: ProfileChildrenPageProps) {
   const [children, setChildren] = useState("")
+  const [numero, setNumero] = useState<string | null>(null)
 
-  const handleNext = () => {
-    if (children !== "") {
+  useEffect(() => {
+    const stored = localStorage.getItem("uid")
+    if (stored) setNumero(stored)
+  }, [])
+
+  const handleNext = async () => {
+    if (!numero || children === "") {
+      alert("Identifiant ou nombre d'enfants manquant.")
+      return
+    }
+
+    try {
+      const res = await fetch("/api/update-children", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ numero, enfants: parseInt(children, 10) }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        alert(data.error || "Erreur lors de l'enregistrement.")
+        return
+      }
+
+      console.log("✅ Nombre d'enfants enregistré :", data)
       onNext()
+    } catch (err) {
+      console.error("Erreur API :", err)
+      alert("Erreur réseau")
     }
   }
 
   const handleChildrenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, "") // Only allow digits
+    const value = e.target.value.replace(/\D/g, "")
     if (Number.parseInt(value) <= 20 || value === "") {
-      // Reasonable limit for number of children
       setChildren(value)
     }
   }
@@ -31,12 +56,10 @@ export default function ProfileChildrenPage({ onBack, onNext }: ProfileChildrenP
   return (
     <div className="min-h-screen bg-[#ffffff] flex items-center justify-center p-6">
       <div className="w-full max-w-md">
-        {/* Header */}
         <div className="text-center mb-16">
           <h1 className="text-3xl font-bold text-[#414143] mb-16">Mon profil</h1>
         </div>
 
-        {/* Question */}
         <div className="mb-8">
           <label htmlFor="children" className="block text-lg font-medium text-[#414143] mb-6">
             Combien d'enfants à charge ?
@@ -51,7 +74,6 @@ export default function ProfileChildrenPage({ onBack, onNext }: ProfileChildrenP
           />
         </div>
 
-        {/* Next Button */}
         <Button
           onClick={handleNext}
           disabled={children === ""}

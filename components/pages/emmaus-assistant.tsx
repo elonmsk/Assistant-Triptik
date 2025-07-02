@@ -84,7 +84,7 @@ export default function Component() {
                     <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-sm">
                       😊
                     </div>
-                    <span className="font-medium text-[#414143]">Assistant Triptek</span>
+                    <span className="font-medium text-[#414143]">Assistant Triptik</span>
                   </div>
 
                   {/* Chat Messages */}
@@ -101,7 +101,7 @@ export default function Component() {
                         😊
                       </div>
                       <div className="flex-1">
-                        <div className="text-xs text-[#73726d] mb-1">Assistant Triptek</div>
+                        <div className="text-xs text-[#73726d] mb-1">Assistant Triptik</div>
                         <div className="bg-gray-100 px-3 py-2 rounded-2xl rounded-tl-md text-sm text-[#414143]">
                           <p className="mb-3">
                             Pour obtenir votre carte Vitale, voici les étapes à suivre, que vous soyez un nouvel assuré
@@ -167,9 +167,7 @@ export default function Component() {
             </div>
           </div>
 
-          <Button className="w-full max-w-md bg-[#000000] hover:bg-[#1c1c1c] text-white py-4 text-lg font-medium rounded-xl">
-            Commencer
-          </Button>
+
         </div>
       </main>
     </div>

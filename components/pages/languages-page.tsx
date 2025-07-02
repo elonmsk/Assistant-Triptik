@@ -3,6 +3,7 @@
 import { ArrowLeft, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
+import BirthdayPage from "./profile-birth-date-page" // Importez le composant BirthdayPage
 
 interface LanguagesPageProps {
   onBack: () => void
@@ -10,6 +11,7 @@ interface LanguagesPageProps {
 
 export default function LanguagesPage({ onBack }: LanguagesPageProps) {
   const [selectedLanguage, setSelectedLanguage] = useState("Français")
+  const [showBirthdayPage, setShowBirthdayPage] = useState(false) // État pour gérer la redirection
 
   const languages = [
     "Français",
@@ -23,10 +25,43 @@ export default function LanguagesPage({ onBack }: LanguagesPageProps) {
     "Ethyopie",
   ]
 
-  const handleLanguageSelect = (language: string) => {
-    setSelectedLanguage(language)
-    // Here you would typically save the language preference
-    console.log(`Language selected: ${language}`)
+const handleLanguageSelect = async (language: string) => {
+  setSelectedLanguage(language)
+  console.log(`Language selected: ${language}`)
+
+  const numero = localStorage.getItem("numero")
+
+  if (!numero) {
+    console.error("Aucun numéro trouvé en localStorage")
+    return
+  }
+
+  const response = await fetch('/api/update-language', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ numero, language }),
+  })
+
+  if (response.ok) {
+    console.log("Langue enregistrée avec succès")
+  } else {
+    console.error("Erreur enregistrement langue")
+  }
+
+  setShowBirthdayPage(true)
+}
+
+
+  const handleBirthdayBack = () => {
+    setShowBirthdayPage(false) // Retour à la page de sélection de langue
+  }
+
+  const handleBirthdayNext = () => {
+    // Logique pour continuer après la page d'anniversaire
+  }
+
+  if (showBirthdayPage) {
+    return <BirthdayPage onBack={handleBirthdayBack} onNext={handleBirthdayNext} />
   }
 
   return (

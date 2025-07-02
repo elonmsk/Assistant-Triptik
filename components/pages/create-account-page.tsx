@@ -12,7 +12,44 @@ interface CreateAccountPageProps {
 
 export default function CreateAccountPage({ onComplete }: CreateAccountPageProps) {
   const [showSimpleCreate, setShowSimpleCreate] = useState(false)
-  const [showLogin, setShowLogin] = useState(false)
+  const [showLogin, setShowLogin] = useState(true)
+
+  const [identifiant, setIdentifiant] = useState("")
+  const [password, setPassword] = useState("")
+  const [errorMessage, setErrorMessage] = useState("")
+
+  const handleLogin = async () => {
+    setErrorMessage("")
+
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ identifiant, password }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        setErrorMessage(data.error || "Une erreur est survenue.")
+        return
+      }
+
+      console.log("✅ Connexion réussie :", data)
+
+      if (data.display_name) {
+        localStorage.setItem("numero", data.display_name)
+        console.log("👉 Numéro unique sauvegardé et affiché :", data.display_name)
+      }
+
+      if (onComplete) onComplete()
+    } catch (err) {
+      console.error("Erreur réseau :", err)
+      setErrorMessage("Erreur réseau.")
+    }
+  }
 
   if (showSimpleCreate) {
     return (
@@ -24,30 +61,14 @@ export default function CreateAccountPage({ onComplete }: CreateAccountPageProps
     )
   }
 
-  if (showLogin) {
-    // You can create a separate login page component here
-    return (
-      <div className="min-h-screen bg-[#ffffff] flex items-center justify-center p-6">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-[#414143] mb-4">Page de connexion</h1>
-          <Button onClick={() => setShowLogin(false)} variant="outline">
-            Retour
-          </Button>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-screen bg-[#ffffff] flex items-center justify-center p-6">
       <div className="w-full max-w-md">
-        {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-3xl font-bold text-[#414143] mb-4">Se connecter</h1>
-          <p className="text-lg text-[#73726d]">Votre compte restera 100% anonyme</p>
+          <p className="text-lg text-[#73726d]">Votre profil restera 100% anonyme</p>
         </div>
 
-        {/* Form */}
         <div className="space-y-6 mb-8">
           <div>
             <Label htmlFor="identifier" className="text-base font-medium text-[#414143] mb-2 block">
@@ -57,6 +78,8 @@ export default function CreateAccountPage({ onComplete }: CreateAccountPageProps
               id="identifier"
               type="text"
               placeholder="Votre identifiant à 6 chiffres"
+              value={identifiant}
+              onChange={(e) => setIdentifiant(e.target.value)}
               className="w-full py-4 px-4 text-base border-gray-300 rounded-lg"
             />
           </div>
@@ -69,48 +92,33 @@ export default function CreateAccountPage({ onComplete }: CreateAccountPageProps
               id="password"
               type="password"
               placeholder="Votre mot de passe"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="w-full py-4 px-4 text-base border-gray-300 rounded-lg"
             />
           </div>
         </div>
 
-        {/* Login Button */}
+        {errorMessage && (
+          <div className="text-center text-red-500 font-medium mb-4">{errorMessage}</div>
+        )}
+
         <Button
-          onClick={onComplete}
+          onClick={handleLogin}
           className="w-full bg-[#000000] hover:bg-[#1c1c1c] text-white py-4 text-base rounded-lg mb-6"
         >
           Se connecter
         </Button>
 
-        {/* Or Divider */}
-        <div className="text-center mb-6">
-          <span className="text-lg text-[#73726d]">ou</span>
-        </div>
 
-        {/* Create Account Button */}
-        <Button
-          variant="outline"
-          onClick={() => setShowSimpleCreate(true)}
-          className="w-full border-2 border-[#414143] text-[#414143] hover:bg-gray-50 py-4 text-base rounded-lg mb-8"
-        >
-          Créer un compte
-        </Button>
 
-        {/* Information Text */}
         <div className="text-sm text-[#414143] leading-relaxed text-center">
           <p className="mb-4">
-            Votre compte restant anonyme, nous allons vous fournir un identifiant unique à mémoriser et vous proposer de
-            créer votre propre mot de passe. Toutes les informations restent anonymes: aucune demande de nom, prénom,
-            email, téléphone..
-          </p>
-          <p className="mb-4">
-            Vous devez conserver votre identifiant et mot de passe. Si vous les oubliez vous perdrez l'historique de vos
-            recherches et les informations concernant votre situation.
+            Vous devez conserver votre identifiant et mot de passe. Si vous les oubliez, vos données seront perdues.
           </p>
           <p>
             <span className="text-red-500 font-medium">
-              Vous devrez alors recréer un nouveau compte et renseigner votre profil car aucune demande de mot de passe
-              n'est autorisée dans le but de conserver votre anonymat.
+              Aucun système de récupération n’est prévu.
             </span>
           </p>
         </div>

@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Clock } from "lucide-react"
 import { useState } from "react"
-import ProfileBirthDatePage from "./profile-birth-date-page"
+import LanguagePage from "./languages-page" // Importez le composant LanguagePage
 
 interface ProfileSetupPageProps {
   onBack: () => void
@@ -11,23 +11,23 @@ interface ProfileSetupPageProps {
 }
 
 export default function ProfileSetupPage({ onBack, onContinue }: ProfileSetupPageProps) {
-  const [showBirthDateQuestion, setShowBirthDateQuestion] = useState(false)
+  const [showLanguageQuestion, setShowLanguageQuestion] = useState(false) // Changez le nom de l'état
 
   const handleContinue = () => {
-    setShowBirthDateQuestion(true)
+    setShowLanguageQuestion(true) // Changez le nom de l'état
   }
 
-  const handleBirthDateBack = () => {
-    setShowBirthDateQuestion(false)
+  const handleLanguageBack = () => {
+    setShowLanguageQuestion(false) // Changez le nom de l'état
   }
 
-  const handleBirthDateNext = () => {
-    // Profile questions are complete, call the completion handler
+  const handleLanguageNext = () => {
+    // Les questions du profil sont complètes, appelez le gestionnaire de complétion
     onContinue()
   }
 
-  if (showBirthDateQuestion) {
-    return <ProfileBirthDatePage onBack={handleBirthDateBack} onNext={handleBirthDateNext} />
+  if (showLanguageQuestion) { // Changez le nom de l'état
+    return <LanguagePage onBack={handleLanguageBack} onNext={handleLanguageNext} /> // Utilisez LanguagePage au lieu de ProfileBirthDatePage
   }
 
   return (
