@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState } from "react"
+import { Volume2, Pause } from "lucide-react"
 import AccountCreatedSuccessPage from "./account-created-success-page"
 
 interface CreateAccountSimplePageProps {
@@ -16,6 +17,13 @@ export default function CreateAccountSimplePage({ onBack, onLogin, onComplete }:
   const [showSuccess, setShowSuccess] = useState(false)
   const [uid, setUid] = useState("")
   const [password, setPassword] = useState("")
+  const [isSpeaking, setIsSpeaking] = useState(false)
+  const utterance = new SpeechSynthesisUtterance(`
+    Votre compte restant anonyme, nous allons vous fournir un identifiant unique à mémoriser et vous proposer de créer votre propre mot de passe.
+    Toutes les informations restent anonymes: aucune demande de nom, prénom, email, téléphone.
+    Vous devez conserver votre identifiant et mot de passe. Si vous les oubliez vous perdrez l’historique de vos recherches et les informations concernant votre situation.
+    Vous devrez alors recréer un nouveau compte et renseigner votre profil car aucune demande de mot de passe n’est autorisée dans le but de conserver votre anonymat.
+  `)
 
   const handleCreateAccount = async () => {
     try {
@@ -43,6 +51,16 @@ export default function CreateAccountSimplePage({ onBack, onLogin, onComplete }:
 
   const handleContinueToLogin = () => {
     onLogin()
+  }
+
+  const toggleSpeak = () => {
+    if (speechSynthesis.speaking) {
+      speechSynthesis.cancel()
+      setIsSpeaking(false)
+    } else {
+      speechSynthesis.speak(utterance)
+      setIsSpeaking(true)
+    }
   }
 
   if (showSuccess && uid) {
@@ -80,21 +98,28 @@ export default function CreateAccountSimplePage({ onBack, onLogin, onComplete }:
           Créer mon profil
         </Button>
 
-
-
-
-        <div className="text-sm text-[#414143] leading-relaxed text-center">
-          <p className="mb-4">
-            Votre profil restera anonyme. Nous allons vous fournir un identifiant unique à mémoriser.
-          </p>
-          <p className="mb-4">
-            Si vous oubliez cet identifiant et le mot de passe, vos données seront perdues.
-          </p>
+        <div className="text-sm text-[#414143] leading-relaxed text-center relative pb-12">
           <p>
+            Votre compte restant anonyme, nous allons vous fournir un identifiant unique à mémoriser et vous proposer de
+            créer votre propre mot de passe. Toutes les informations restent anonymes: aucune demande de nom, prénom,
+            email, téléphone. Vous devez conserver votre identifiant et mot de passe. Si vous les oubliez, vous perdrez
+            l’historique de vos recherches et les informations concernant votre situation.
             <span className="text-red-500 font-medium">
-              Aucun système de récupération n'est prévu afin de garantir l'anonymat.
+              Vous devrez alors recréer un nouveau compte et renseigner votre profil car aucune demande de mot de passe n’est
+              autorisée dans le but de conserver votre anonymat.
             </span>
           </p>
+          <button
+            onClick={toggleSpeak}
+            className="absolute bottom-0 left-1/2 transform -translate-x-1/2 p-2"
+            aria-label="Lecture du texte"
+          >
+            {isSpeaking ? (
+              <Pause size={28} className="text-[#414143]" />
+            ) : (
+              <Volume2 size={28} className="text-[#414143]" />
+            )}
+          </button>
         </div>
       </div>
     </div>

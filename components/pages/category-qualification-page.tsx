@@ -32,91 +32,95 @@ export default function CategoryQualificationPage({ category, onBack }: Category
     scrollToBottom()
   }, [currentStep, userAnswers, showInitialMessage])
 
-  const getQualificationSteps = (categoryName: string): QualificationStep[] => {
-    const steps: { [key: string]: QualificationStep[] } = {
-      Santé: [
-        {
-          question: "Avez-vous un numéro de sécurité sociale ? Il est composé de 13 chiffres au minimum.",
-          answers: [
-            { text: "Oui", emoji: "👍", value: "yes" },
-            { text: "Non", emoji: "👎", value: "no" },
-          ],
-        },
-        {
-          question: "C'est un numéro provisoire ?",
-          answers: [
-            { text: "Oui", emoji: "👍", value: "yes" },
-            { text: "Non", emoji: "👎", value: "no" },
-          ],
-        },
-        {
-          question: "Êtes-vous en situation de handicap ?",
-          answers: [
-            { text: "Oui", emoji: "👍", value: "yes" },
-            { text: "Non", emoji: "👎", value: "no" },
-          ],
-        },
+const getQualificationSteps = (categoryName: string): QualificationStep[] => {
+  const commonSteps = [
+    {
+      question: "Avez-vous déjà fait des démarches dans ce domaine ?",
+      answers: [
+        { text: "Oui", emoji: "👍", value: "yes" },
+        { text: "Non", emoji: "👎", value: "no" },
       ],
-      Emploi: [
-        {
-          question: "Avez-vous déjà travaillé en France ?",
-          answers: [
-            { text: "Oui", emoji: "👍", value: "yes" },
-            { text: "Non", emoji: "👎", value: "no" },
-          ],
-        },
-        {
-          question: "Avez-vous un CV à jour ?",
-          answers: [
-            { text: "Oui", emoji: "👍", value: "yes" },
-            { text: "Non", emoji: "👎", value: "no" },
-          ],
-        },
-        {
-          question: "Êtes-vous inscrit à Pôle Emploi ?",
-          answers: [
-            { text: "Oui", emoji: "👍", value: "yes" },
-            { text: "Non", emoji: "👎", value: "no" },
-          ],
-        },
-      ],
-      Logement: [
-        {
-          question: "Avez-vous actuellement un logement ?",
-          answers: [
-            { text: "Oui", emoji: "👍", value: "yes" },
-            { text: "Non", emoji: "👎", value: "no" },
-          ],
-        },
-        {
-          question: "Souhaitez-vous faire une demande de logement social ?",
-          answers: [
-            { text: "Oui", emoji: "👍", value: "yes" },
-            { text: "Non", emoji: "👎", value: "no" },
-          ],
-        },
-        {
-          question: "Connaissez-vous vos droits aux aides au logement ?",
-          answers: [
-            { text: "Oui", emoji: "👍", value: "yes" },
-            { text: "Non", emoji: "👎", value: "no" },
-          ],
-        },
-      ],
-    }
+    },
+  ];
 
-    return (
-      steps[categoryName] || [
-        {
-          question: "Avez-vous déjà fait des démarches dans ce domaine ?",
-          answers: [
-            { text: "Oui", emoji: "👍", value: "yes" },
-            { text: "Non", emoji: "👎", value: "no" },
-          ],
-        },
-      ]
-    )
-  }
+  const steps: { [key: string]: QualificationStep[] } = {
+    Santé: [
+      ...commonSteps,
+      {
+        question: "Avez-vous un numéro de sécurité sociale ? Il est composé de 13 chiffres au minimum.",
+        answers: [
+          { text: "Oui", emoji: "👍", value: "yes" },
+          { text: "Non", emoji: "👎", value: "no" },
+        ],
+      },
+      {
+        question: "C'est un numéro provisoire ?",
+        answers: [
+          { text: "Oui", emoji: "👍", value: "yes" },
+          { text: "Non", emoji: "👎", value: "no" },
+        ],
+      },
+      {
+        question: "Êtes-vous en situation de handicap ?",
+        answers: [
+          { text: "Oui", emoji: "👍", value: "yes" },
+          { text: "Non", emoji: "👎", value: "no" },
+        ],
+      },
+    ],
+    Emploi: [
+      ...commonSteps,
+      {
+        question: "Avez-vous déjà travaillé en France ?",
+        answers: [
+          { text: "Oui", emoji: "👍", value: "yes" },
+          { text: "Non", emoji: "👎", value: "no" },
+        ],
+      },
+      {
+        question: "Avez-vous un CV à jour ?",
+        answers: [
+          { text: "Oui", emoji: "👍", value: "yes" },
+          { text: "Non", emoji: "👎", value: "no" },
+        ],
+      },
+      {
+        question: "Êtes-vous inscrit à Pôle Emploi ?",
+        answers: [
+          { text: "Oui", emoji: "👍", value: "yes" },
+          { text: "Non", emoji: "👎", value: "no" },
+        ],
+      },
+    ],
+    Logement: [
+      ...commonSteps,
+      {
+        question: "Avez-vous actuellement un logement ?",
+        answers: [
+          { text: "Oui", emoji: "👍", value: "yes" },
+          { text: "Non", emoji: "👎", value: "no" },
+        ],
+      },
+      {
+        question: "Souhaitez-vous faire une demande de logement social ?",
+        answers: [
+          { text: "Oui", emoji: "👍", value: "yes" },
+          { text: "Non", emoji: "👎", value: "no" },
+        ],
+      },
+      {
+        question: "Connaissez-vous vos droits aux aides au logement ?",
+        answers: [
+          { text: "Oui", emoji: "👍", value: "yes" },
+          { text: "Non", emoji: "👎", value: "no" },
+        ],
+      },
+    ],
+  };
+
+  return steps[categoryName] || commonSteps;
+};
+
 
   const qualificationSteps = getQualificationSteps(category)
 

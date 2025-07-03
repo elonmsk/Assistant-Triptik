@@ -104,6 +104,16 @@ export default function AccompagnePage({ isLoggedIn: propIsLoggedIn, initialCate
     // Retour à la page principale
   }
 
+  // NOUVELLE FONCTION: Gestionnaire pour le retour depuis AuthPage
+  const handleBackFromAuth = () => {
+    setShowPremiereConnexion(false)
+    // Réinitialiser le thème sélectionné pour revenir à la page d'accueil
+    setSelectedTheme(null)
+    setSelectedCategory(null)
+    // Optionnel: supprimer aussi du localStorage
+    localStorage.removeItem("selectedTheme")
+  }
+
   // Gestionnaire pour les clics sur les thématiques
   const handleCategoryClick = (categoryName: string) => {
     setSelectedTheme(categoryName)
@@ -138,8 +148,9 @@ export default function AccompagnePage({ isLoggedIn: propIsLoggedIn, initialCate
     content = <CreateAccountPage onComplete={handleAccountCreationComplete} />
   } else if (showPremiereConnexion) {
     content = <AuthPage
-      onBack={() => setShowPremiereConnexion(false)}
+      onBack={handleBackFromAuth} // Utiliser la nouvelle fonction
       selectedTheme={selectedTheme}
+      showTheme={false} // Ne pas afficher le thème
       onSeConnecter={handleSeConnecter}
       onCreerCompte={handleCreerCompte}
       onContinuerSansConnexion={handleContinuerSansConnexion}
