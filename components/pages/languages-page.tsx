@@ -3,7 +3,8 @@
 import { ArrowLeft, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
-import BirthdayPage from "./profile-birth-date-page" // Importez le composant BirthdayPage
+import BirthdayPage from "./profile-birth-date-page"
+import ProfileFrenchLevelPage  from "./profile-french-level-page"// Importez le composant ProfileFrenchLevelPage
 
 interface LanguagesPageProps {
   onBack: () => void
@@ -11,7 +12,7 @@ interface LanguagesPageProps {
 
 export default function LanguagesPage({ onBack }: LanguagesPageProps) {
   const [selectedLanguage, setSelectedLanguage] = useState("Français")
-  const [showBirthdayPage, setShowBirthdayPage] = useState(false) // État pour gérer la redirection
+  const [showProfileFrenchLevelPage , setShowProfileFrenchLevelPage ] = useState(false) // État pour gérer la redirection
 
   const languages = [
     "Français",
@@ -48,20 +49,20 @@ const handleLanguageSelect = async (language: string) => {
     console.error("Erreur enregistrement langue")
   }
 
-  setShowBirthdayPage(true)
+  setShowProfileFrenchLevelPage (true)
 }
 
 
   const handleBirthdayBack = () => {
-    setShowBirthdayPage(false) // Retour à la page de sélection de langue
+    setShowProfileFrenchLevelPage (false) // Retour à la page de sélection de langue
   }
 
   const handleBirthdayNext = () => {
     // Logique pour continuer après la page d'anniversaire
   }
 
-  if (showBirthdayPage) {
-    return <BirthdayPage onBack={handleBirthdayBack} onNext={handleBirthdayNext} />
+  if (showProfileFrenchLevelPage) {
+    return <ProfileFrenchLevelPage onBack={handleBirthdayBack} onNext={handleBirthdayNext} />
   }
 
   return (

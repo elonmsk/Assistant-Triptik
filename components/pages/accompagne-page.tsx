@@ -1,128 +1,121 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { supabase } from "@/lib/supabaseClient"
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
 import {
   CreateAccountPage,
   MyProceduresPage,
   MyAppointmentsPage,
   LanguagesPage,
-  CategoryQualificationPage
-} from "@/components/pages"
-import AuthPage from "@/components/pages/premiere-connexion"
-import CreateAccountSimplePage from "@/components/pages/create-account-simple-page"
-import { AccompagneSideMenu, ChatInput } from "@/components/ui-custom"
-import { Button } from "@/components/ui/button"
-import { Menu, User } from "lucide-react"
+  CategoryQualificationPage,
+} from "@/components/pages";
+import AuthPage from "@/components/pages/premiere-connexion";
+import CreateAccountSimplePage from "@/components/pages/create-account-simple-page";
+import { AccompagneSideMenu, ChatInput } from "@/components/ui-custom";
+import { Button } from "@/components/ui/button";
+import { Menu, User } from "lucide-react";
 
 interface AccompagnePageProps {
-  isLoggedIn?: boolean
-  initialCategory?: string | null
+  isLoggedIn?: boolean;
+  initialCategory?: string | null;
 }
 
-export default function AccompagnePage({ isLoggedIn: propIsLoggedIn, initialCategory }: AccompagnePageProps = {}) {
-  const [showCreateAccount, setShowCreateAccount] = useState(false)
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [showMyProcedures, setShowMyProcedures] = useState(false)
-  const [showMyAppointments, setShowMyAppointments] = useState(false)
-  const [showLanguages, setShowLanguages] = useState(false)
-  const [showPremiereConnexion, setShowPremiereConnexion] = useState(false)
-  const [showCreateAccountSimple, setShowCreateAccountSimple] = useState(false)
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(initialCategory || null)
-  const [selectedTheme, setSelectedTheme] = useState<string | null>(null)
-  const [isLoggedIn, setIsLoggedIn] = useState(propIsLoggedIn || false)
-  const [numeroUnique, setNumeroUnique] = useState<string | null>(null)
-
-  const [userData, setUserData] = useState<any | null>(null)
-  const [showUserModal, setShowUserModal] = useState(false)
+export default function AccompagnePage({
+  isLoggedIn: propIsLoggedIn,
+  initialCategory,
+}: AccompagnePageProps = {}) {
+  const [showCreateAccount, setShowCreateAccount] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showMyProcedures, setShowMyProcedures] = useState(false);
+  const [showMyAppointments, setShowMyAppointments] = useState(false);
+  const [showLanguages, setShowLanguages] = useState(false);
+  const [showPremiereConnexion, setShowPremiereConnexion] = useState(false);
+  const [showCreateAccountSimple, setShowCreateAccountSimple] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(initialCategory || null);
+  const [selectedTheme, setSelectedTheme] = useState<string | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(propIsLoggedIn || false);
+  const [numeroUnique, setNumeroUnique] = useState<string | null>(null);
+  const [userData, setUserData] = useState<any | null>(null);
+  const [showUserModal, setShowUserModal] = useState(false);
 
   useEffect(() => {
-    // Si on reçoit une catégorie initiale et qu'on est connecté, on l'affiche directement
     if (propIsLoggedIn && initialCategory) {
-      setIsLoggedIn(true)
-      setSelectedCategory(initialCategory)
-      // Récupérer le numéro depuis localStorage
-      const numero = localStorage.getItem("uid")
+      setIsLoggedIn(true);
+      setSelectedCategory(initialCategory);
+      const numero = localStorage.getItem("uid");
       if (numero) {
-        setNumeroUnique(numero)
+        setNumeroUnique(numero);
       }
     } else {
-      // Logique existante pour forcer la déconnexion
-      localStorage.removeItem("numero")
-      setIsLoggedIn(false)
-      setNumeroUnique(null)
+      localStorage.removeItem("numero");
+      setIsLoggedIn(false);
+      setNumeroUnique(null);
     }
-  }, [propIsLoggedIn, initialCategory])
+  }, [propIsLoggedIn, initialCategory]);
 
   const handleAccountCreationComplete = () => {
-    setIsLoggedIn(true)
-    setShowCreateAccount(false)
-    const numero = localStorage.getItem("numero")
+    setIsLoggedIn(true);
+    setShowCreateAccount(false);
+    const numero = localStorage.getItem("numero");
     if (numero) {
-      setNumeroUnique(numero)
+      setNumeroUnique(numero);
     }
-  }
+  };
 
   const handleLoadUserData = async () => {
-    if (!numeroUnique) return
-    const numeroInt = parseInt(numeroUnique, 10)
-    console.log("👉 recherche numero =", numeroInt)
+    if (!numeroUnique) return;
+    const numeroInt = parseInt(numeroUnique, 10);
+    console.log("👉 recherche numero =", numeroInt);
 
     const { data, error } = await supabase
       .from("info")
       .select("*")
       .eq("numero", numeroInt)
-      .single()
+      .single();
 
     if (error) {
-      console.error("Erreur Supabase", error)
-      alert(`Erreur Supabase: ${error.message}`)
+      console.error("Erreur Supabase", error);
+      alert(`Erreur Supabase: ${error.message}`);
     } else {
-      console.log("📦 Données Supabase", data)
-      setUserData(data)
-      setShowUserModal(true)
+      console.log("📦 Données Supabase", data);
+      setUserData(data);
+      setShowUserModal(true);
     }
-  }
+  };
 
   const handleSendMessage = (message: string) => {
-    console.log("Message envoyé:", message)
-  }
+    console.log("Message envoyé:", message);
+  };
 
-  // Gestionnaires pour AuthPage
   const handleSeConnecter = () => {
-    setShowPremiereConnexion(false)
-    setShowCreateAccount(true)
-  }
+    setShowPremiereConnexion(false);
+    setShowCreateAccount(true);
+  };
 
   const handleCreerCompte = () => {
-    setShowPremiereConnexion(false)
-    setShowCreateAccountSimple(true)
-  }
+    setShowPremiereConnexion(false);
+    setShowCreateAccountSimple(true);
+  };
 
   const handleContinuerSansConnexion = () => {
-    setShowPremiereConnexion(false)
-    // Retour à la page principale
-  }
+    setShowPremiereConnexion(false);
+  };
 
-  // NOUVELLE FONCTION: Gestionnaire pour le retour depuis AuthPage
   const handleBackFromAuth = () => {
-    setShowPremiereConnexion(false)
-    // Réinitialiser le thème sélectionné pour revenir à la page d'accueil
-    setSelectedTheme(null)
-    setSelectedCategory(null)
-    // Optionnel: supprimer aussi du localStorage
-    localStorage.removeItem("selectedTheme")
-  }
+    setShowPremiereConnexion(false);
+    setSelectedTheme(null);
+    setSelectedCategory(null);
+    localStorage.removeItem("selectedTheme");
+  };
 
-  // Gestionnaire pour les clics sur les thématiques
   const handleCategoryClick = (categoryName: string) => {
-    setSelectedTheme(categoryName)
-    localStorage.setItem("selectedTheme", categoryName) // Stocker le thème
-    setShowPremiereConnexion(true)
-    setSelectedCategory(categoryName)
-  }
+    setSelectedTheme(categoryName);
+    localStorage.setItem("selectedTheme", categoryName);
+    setShowPremiereConnexion(true);
+    setSelectedCategory(categoryName);
+    setIsMenuOpen(false);
+  };
 
-  /** HEADER présent partout */
   const renderHeader = () => (
     <header className="flex items-center justify-between py-3 px-6 border-b border-gray-200">
       <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(true)}>
@@ -140,31 +133,32 @@ export default function AccompagnePage({ isLoggedIn: propIsLoggedIn, initialCate
         <User className="w-6 h-6 text-[#414143]" />
       </Button>
     </header>
-  )
+  );
 
-  /** CONTENU CENTRAL: selon état */
-  let content
+  let content;
   if (showCreateAccount) {
-    content = <CreateAccountPage onComplete={handleAccountCreationComplete} />
+    content = <CreateAccountPage onComplete={handleAccountCreationComplete} />;
   } else if (showPremiereConnexion) {
-    content = <AuthPage
-      onBack={handleBackFromAuth} // Utiliser la nouvelle fonction
-      selectedTheme={selectedTheme}
-      showTheme={false} // Ne pas afficher le thème
-      onSeConnecter={handleSeConnecter}
-      onCreerCompte={handleCreerCompte}
-      onContinuerSansConnexion={handleContinuerSansConnexion}
-    />
+    content = (
+      <AuthPage
+        onBack={handleBackFromAuth}
+        selectedTheme={selectedTheme}
+        showTheme={false}
+        onSeConnecter={handleSeConnecter}
+        onCreerCompte={handleCreerCompte}
+        onContinuerSansConnexion={handleContinuerSansConnexion}
+      />
+    );
   } else if (showCreateAccountSimple) {
-    content = <CreateAccountSimplePage onBack={() => setShowCreateAccountSimple(false)} />
+    content = <CreateAccountSimplePage onBack={() => setShowCreateAccountSimple(false)} />;
   } else if (selectedCategory) {
-    content = <CategoryQualificationPage category={selectedCategory} onBack={() => setSelectedCategory(null)} />
+    content = <CategoryQualificationPage category={selectedCategory} onBack={() => setSelectedCategory(null)} />;
   } else if (showMyProcedures) {
-    content = <MyProceduresPage onBack={() => setShowMyProcedures(false)} />
+    content = <MyProceduresPage onBack={() => setShowMyProcedures(false)} />;
   } else if (showMyAppointments) {
-    content = <MyAppointmentsPage onBack={() => setShowMyAppointments(false)} />
+    content = <MyAppointmentsPage onBack={() => setShowMyAppointments(false)} />;
   } else if (showLanguages) {
-    content = <LanguagesPage onBack={() => setShowLanguages(false)} />
+    content = <LanguagesPage onBack={() => setShowLanguages(false)} />;
   } else {
     const categories = [
       { name: "Santé", icon: "🏥" },
@@ -180,15 +174,13 @@ export default function AccompagnePage({ isLoggedIn: propIsLoggedIn, initialCate
       { name: "Culture", icon: "🖼️" },
       { name: "Handicap", icon: "♿" },
       { name: "Aides", icon: "💰" },
-    ]
+    ];
 
     content = (
       <main className="max-w-2xl mx-auto px-6 py-4">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-semibold text-[#414143] mb-6 leading-tight">
-            {isLoggedIn
-              ? `Bonjour ${numeroUnique} ! Comment puis-je vous aider ?`
-              : "Triptik à votre service"}
+            {isLoggedIn ? `Bonjour ${numeroUnique} ! Comment puis-je vous aider ?` : "Triptik à votre service"}
           </h1>
           <p className="text-base text-[#73726d] leading-relaxed">
             {isLoggedIn
@@ -218,11 +210,7 @@ export default function AccompagnePage({ isLoggedIn: propIsLoggedIn, initialCate
           </div>
         </div>
 
-        {!isLoggedIn && (
-          <>
-
-          </>
-        )}
+        {!isLoggedIn && <></>}
 
         {isLoggedIn && (
           <div className="text-center">
@@ -233,11 +221,10 @@ export default function AccompagnePage({ isLoggedIn: propIsLoggedIn, initialCate
           </div>
         )}
       </main>
-    )
+    );
   }
 
-  // Vérifier si on doit afficher le header et le chat
-  const shouldShowHeaderAndChat = !showCreateAccount && !showPremiereConnexion && !showCreateAccountSimple && !selectedCategory
+  const shouldShowHeaderAndChat = !showCreateAccount && !showPremiereConnexion && !showCreateAccountSimple && !selectedCategory;
 
   return (
     <div className="min-h-screen bg-[#ffffff] pb-24">
@@ -248,9 +235,18 @@ export default function AccompagnePage({ isLoggedIn: propIsLoggedIn, initialCate
         isOpen={isMenuOpen}
         onClose={() => setIsMenuOpen(false)}
         onNewConversationClick={() => {}}
-        onMyProceduresClick={() => setShowMyProcedures(true)}
-        onMyAppointmentsClick={() => setShowMyAppointments(true)}
-        onLanguagesClick={() => setShowLanguages(true)}
+        onMyProceduresClick={() => {
+          setShowMyProcedures(true);
+          setIsMenuOpen(false);
+        }}
+        onMyAppointmentsClick={() => {
+          setShowMyAppointments(true);
+          setIsMenuOpen(false);
+        }}
+        onLanguagesClick={() => {
+          setShowLanguages(true);
+          setIsMenuOpen(false);
+        }}
       />
 
       {showUserModal && userData && (
@@ -267,5 +263,5 @@ export default function AccompagnePage({ isLoggedIn: propIsLoggedIn, initialCate
         </div>
       )}
     </div>
-  )
+  );
 }

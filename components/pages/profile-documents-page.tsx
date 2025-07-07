@@ -23,10 +23,10 @@ export default function ProfileDocumentsPage({ onBack, onComplete }: ProfileDocu
   const documents = [
     "Attestation de demande d'asile (ADA)",
     "Attestation prolongation d'instruction (API)",
-    "Carte de séjour",
-    "Titre de séjour",
+    "Carte de séjour (carte de résident)",
+    "Titre de séjour (carte de résident avec mention « réfugié »)",
     "Passeport",
-    "Carte AME",
+    "Récépissé de décision favorable (titre de séjour validé)",
     "Aucun de ces documents",
   ]
 

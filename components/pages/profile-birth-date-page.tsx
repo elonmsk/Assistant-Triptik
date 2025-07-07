@@ -23,46 +23,47 @@ export default function ProfileBirthDatePage({ onBack, onNext }: ProfileBirthDat
     if (stored) setNumero(stored)
   }, [])
 
-  const handleNext = async () => {
-    if (currentStep === "birthdate") {
-      if (!numero) {
-        alert("Identifiant utilisateur introuvable.")
+const handleNext = async () => {
+  if (currentStep === "birthdate") {
+    if (!numero) {
+      alert("Identifiant utilisateur introuvable.")
+      return
+    }
+
+    const formatted = formatDateToISO(birthDate)
+
+    try {
+      const res = await fetch("/api/update-birthdate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ numero, birthdate: formatted }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        alert(data.error || "Erreur lors de l'enregistrement.")
         return
       }
 
-      const formatted = formatDateToISO(birthDate)
-
-      try {
-        const res = await fetch("/api/update-birthdate", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ numero, birthdate: formatted }),
-        })
-
-        const data = await res.json()
-
-        if (!res.ok) {
-          alert(data.error || "Erreur lors de l'enregistrement.")
-          return
-        }
-
-        console.log("✅ Date enregistrée :", data)
-        // Si succès → étape suivante
-        setCurrentStep("nationality")
-      } catch (err) {
-        console.error("Erreur réseau :", err)
-        alert("Erreur réseau")
-      }
-    } else if (currentStep === "nationality") {
-      setCurrentStep("children")
-    } else if (currentStep === "children") {
+      console.log("✅ Date enregistrée :", data)
+      // Aller directement à la page city
       setCurrentStep("city")
-    } else if (currentStep === "city") {
-      onNext()
+    } catch (err) {
+      console.error("Erreur réseau :", err)
+      alert("Erreur réseau")
     }
+  } else if (currentStep === "nationality") {
+    setCurrentStep("children")
+  } else if (currentStep === "children") {
+    setCurrentStep("city")
+  } else if (currentStep === "city") {
+    onNext()
   }
+}
+
 
   const formatDateToISO = (str: string) => {
     const [day, month, year] = str.split("/")

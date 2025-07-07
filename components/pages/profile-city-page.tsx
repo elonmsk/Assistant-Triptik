@@ -98,7 +98,7 @@ export default function ProfileCityPage({ onBack, onNext }: ProfileCityPageProps
           {/* Ville */}
           <div>
             <label className="block text-lg font-medium text-[#414143] mb-4">
-              Votre ville de résidence en France ?
+              Votre ville de domiciliation en France ?
             </label>
             <Select value={city} onValueChange={setCity}>
               <SelectTrigger className="w-full py-4 px-4 text-base border-gray-300 rounded-lg">
@@ -117,7 +117,7 @@ export default function ProfileCityPage({ onBack, onNext }: ProfileCityPageProps
           {/* Département libre */}
           <div>
             <label className="block text-lg font-medium text-[#414143] mb-4">
-              Votre département ?
+              Votre département de domiciliation ?
             </label>
             <Input
               type="text"
