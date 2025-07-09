@@ -50,15 +50,6 @@ export default function CategoryQualificationPage({
 
     // Questions du compte (en rouge dans l'image) - posées si pas connecté
     const accountQuestions = {
-      common: [
-        {
-          question: "Quel est votre statut administratif ?",
-          answers: [
-            { text: "Régularisé", emoji: "📋", value: "regularized" },
-            { text: "En cours", emoji: "⏳", value: "in_progress" },
-            { text: "Irrégulier", emoji: "❌", value: "irregular" },
-          ],
-        },
         {
           question: "Quels documents avez-vous ?",
           answers: [
