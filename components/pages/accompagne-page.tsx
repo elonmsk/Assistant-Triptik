@@ -108,13 +108,18 @@ export default function AccompagnePage({
     localStorage.removeItem("selectedTheme");
   };
 
-  const handleCategoryClick = (categoryName: string) => {
-    setSelectedTheme(categoryName);
-    localStorage.setItem("selectedTheme", categoryName);
+const handleCategoryClick = (categoryName: string) => {
+  setSelectedTheme(categoryName);
+  localStorage.setItem("selectedTheme", categoryName);
+  setSelectedCategory(categoryName);
+  setIsMenuOpen(false);
+
+  // Vérifiez si l'utilisateur est connecté
+  if (!isLoggedIn) {
     setShowPremiereConnexion(true);
-    setSelectedCategory(categoryName);
-    setIsMenuOpen(false);
-  };
+  }
+};
+
 
   const renderHeader = () => (
     <header className="flex items-center justify-between py-3 px-6 border-b border-gray-200">
@@ -135,94 +140,92 @@ export default function AccompagnePage({
     </header>
   );
 
-  let content;
-  if (showCreateAccount) {
-    content = <CreateAccountPage onComplete={handleAccountCreationComplete} />;
-  } else if (showPremiereConnexion) {
-    content = (
-      <AuthPage
-        onBack={handleBackFromAuth}
-        selectedTheme={selectedTheme}
-        showTheme={false}
-        onSeConnecter={handleSeConnecter}
-        onCreerCompte={handleCreerCompte}
-        onContinuerSansConnexion={handleContinuerSansConnexion}
-      />
-    );
-  } else if (showCreateAccountSimple) {
-    content = <CreateAccountSimplePage onBack={() => setShowCreateAccountSimple(false)} />;
-  } else if (selectedCategory) {
-    content = <CategoryQualificationPage category={selectedCategory} onBack={() => setSelectedCategory(null)} />;
-  } else if (showMyProcedures) {
-    content = <MyProceduresPage onBack={() => setShowMyProcedures(false)} />;
-  } else if (showMyAppointments) {
-    content = <MyAppointmentsPage onBack={() => setShowMyAppointments(false)} />;
-  } else if (showLanguages) {
-    content = <LanguagesPage onBack={() => setShowLanguages(false)} />;
-  } else {
-    const categories = [
-      { name: "Santé", icon: "🏥" },
-      { name: "Emploi", icon: "💼" },
-      { name: "Famille", icon: "👨‍👩‍👧‍👦" },
-      { name: "Formation Français", icon: "🇫🇷" },
-      { name: "Formation Pro", icon: "🎓" },
-      { name: "Logement", icon: "🏠" },
-      { name: "Éducation", icon: "📚" },
-      { name: "Juridique", icon: "⚖️" },
-      { name: "Transport", icon: "🚌" },
-      { name: "Démarches", icon: "📋" },
-      { name: "Culture", icon: "🖼️" },
-      { name: "Handicap", icon: "♿" },
-      { name: "Aides", icon: "💰" },
-    ];
-
-    content = (
-      <main className="max-w-2xl mx-auto px-6 py-4">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-semibold text-[#414143] mb-6 leading-tight">
-            {isLoggedIn ? `Bonjour ${numeroUnique} ! Comment puis-je vous aider ?` : "Triptik à votre service"}
-          </h1>
-          <p className="text-base text-[#73726d] leading-relaxed">
-            {isLoggedIn
-              ? "Votre profil est maintenant configuré. Posez-moi vos questions ou choisissez une thématique."
-              : "Vous pouvez sélectionner une des thématiques ci-dessous ou poser directement une question"}
-          </p>
+let content;
+if (showCreateAccount) {
+  content = <CreateAccountPage onComplete={handleAccountCreationComplete} />;
+} else if (showPremiereConnexion) {
+  content = (
+    <AuthPage
+      onBack={handleBackFromAuth}
+      selectedTheme={selectedTheme}
+      showTheme={false}
+      onSeConnecter={handleSeConnecter}
+      onCreerCompte={handleCreerCompte}
+      onContinuerSansConnexion={handleContinuerSansConnexion}
+    />
+  );
+} else if (showCreateAccountSimple) {
+  content = <CreateAccountSimplePage onBack={() => setShowCreateAccountSimple(false)} />;
+} else if (selectedCategory) {
+  content = <CategoryQualificationPage category={selectedCategory} onBack={() => setSelectedCategory(null)} isConnected={isLoggedIn} />;
+} else if (showMyProcedures) {
+  content = <MyProceduresPage onBack={() => setShowMyProcedures(false)} />;
+} else if (showMyAppointments) {
+  content = <MyAppointmentsPage onBack={() => setShowMyAppointments(false)} />;
+} else if (showLanguages) {
+  content = <LanguagesPage onBack={() => setShowLanguages(false)} />;
+} else {
+  // Affichage des catégories
+  const categories = [
+    { name: "Santé", icon: "🏥" },
+    { name: "Emploi", icon: "💼" },
+    { name: "Famille", icon: "👨‍👩‍👧‍👦" },
+    { name: "Formation Français", icon: "🇫🇷" },
+    { name: "Formation Pro", icon: "🎓" },
+    { name: "Logement", icon: "🏠" },
+    { name: "Éducation", icon: "📚" },
+    { name: "Juridique", icon: "⚖️" },
+    { name: "Transport", icon: "🚌" },
+    { name: "Démarches", icon: "📋" },
+    { name: "Culture", icon: "🖼️" },
+    { name: "Handicap", icon: "♿" },
+    { name: "Aides", icon: "💰" },
+  ];
+  content = (
+    <main className="max-w-2xl mx-auto px-6 py-4">
+      <div className="text-center mb-8">
+        <h1 className="text-2xl font-semibold text-[#414143] mb-6 leading-tight">
+          {isLoggedIn ? `Bonjour ${numeroUnique} ! Comment puis-je vous aider ?` : "Triptik à votre service"}
+        </h1>
+        <p className="text-base text-[#73726d] leading-relaxed">
+          {isLoggedIn
+            ? "Votre profil est maintenant configuré. Posez-moi vos questions ou choisissez une thématique."
+            : "Vous pouvez sélectionner une des thématiques ci-dessous ou poser directement une question"}
+        </p>
+      </div>
+      <div className="mb-6">
+        <h2 className="text-xl font-normal text-[#000000] text-center mb-8">Choisissez une thématique</h2>
+        <div className="grid grid-cols-4 gap-4">
+          {categories.map((category, index) => (
+            <Button
+              key={index}
+              variant="outline"
+              onClick={() => handleCategoryClick(category.name)}
+              className="h-24 w-full flex flex-col items-center justify-center gap-2 border-2 border-[#e7e7e7] bg-white hover:bg-gray-50 rounded-xl p-3"
+            >
+              <div className="w-11 h-11 bg-[#f8f8f8] rounded-full flex items-center justify-center">
+                <span className="text-lg">{category.icon}</span>
+              </div>
+              <span className="text-sm font-medium text-[#000000] text-center leading-tight">
+                {category.name}
+              </span>
+            </Button>
+          ))}
         </div>
-
-        <div className="mb-6">
-          <h2 className="text-xl font-normal text-[#000000] text-center mb-8">Choisissez une thématique</h2>
-          <div className="grid grid-cols-4 gap-4">
-            {categories.map((category, index) => (
-              <Button
-                key={index}
-                variant="outline"
-                onClick={() => handleCategoryClick(category.name)}
-                className="h-24 w-full flex flex-col items-center justify-center gap-2 border-2 border-[#e7e7e7] bg-white hover:bg-gray-50 rounded-xl p-3"
-              >
-                <div className="w-11 h-11 bg-[#f8f8f8] rounded-full flex items-center justify-center">
-                  <span className="text-lg">{category.icon}</span>
-                </div>
-                <span className="text-sm font-medium text-[#000000] text-center leading-tight">
-                  {category.name}
-                </span>
-              </Button>
-            ))}
+      </div>
+      {!isLoggedIn && <></>}
+      {isLoggedIn && (
+        <div className="text-center">
+          <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-full">
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <span className="text-sm font-medium">Connecté</span>
           </div>
         </div>
+      )}
+    </main>
+  );
+}
 
-        {!isLoggedIn && <></>}
-
-        {isLoggedIn && (
-          <div className="text-center">
-            <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-full">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="text-sm font-medium">Connecté</span>
-            </div>
-          </div>
-        )}
-      </main>
-    );
-  }
 
   const shouldShowHeaderAndChat = !showCreateAccount && !showPremiereConnexion && !showCreateAccountSimple && !selectedCategory;
 

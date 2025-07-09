@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { useState, useEffect } from "react"
 import ProfileNationalityPage from "./profile-nationality-page"
 import ProfileChildrenPage from "./profile-children-page"
-import ProfileCityPage from "./profile-city-page"
+import ProfileGenrePage from "./profile-genre-page"
 
 interface ProfileBirthDatePageProps {
   onBack: () => void
@@ -87,7 +87,7 @@ const handleNext = async () => {
   // Affichage conditionnel des étapes suivantes
   if (currentStep === "nationality") return <ProfileNationalityPage onBack={handleBack} onNext={handleNext} />
   if (currentStep === "children") return <ProfileChildrenPage onBack={handleBack} onNext={handleNext} />
-  if (currentStep === "city") return <ProfileCityPage onBack={handleBack} onNext={handleNext} />
+  if (currentStep === "city") return <ProfileGenrePage onBack={handleBack} onNext={handleNext} />
 
   return (
     <div className="min-h-screen bg-[#ffffff] flex items-center justify-center p-6">
