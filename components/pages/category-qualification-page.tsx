@@ -39,6 +39,8 @@ export default function CategoryQualificationPage({
 
   const getQualificationSteps = (categoryName: string, isUserConnected: boolean): QualificationStep[] => {
     const commonSteps = [
+      common: [
+
       {
         question: "Avez-vous déjà fait des démarches dans ce domaine ?",
         answers: [
