@@ -177,7 +177,7 @@ async function callRenderLLM({ systemContext, messages, userMessage }: {
     context = detectContext(lastUserMessage);
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000);
+    const timeoutId = setTimeout(() => controller.abort(), 90000);
 
     const response = await fetch(`${EXTERNAL_API_URL}/api/chat`, {
       method: 'POST',

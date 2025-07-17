@@ -158,7 +158,7 @@ async function callRenderLLMStream(
   try {
     const context = detectContext(message);
     const abortController = new AbortController();
-    const timeoutId = setTimeout(() => abortController.abort(), 60000);
+    const timeoutId = setTimeout(() => abortController.abort(), 90000);
 
     const response = await fetch(`${EXTERNAL_API_URL}/api/chat`, {
       method: 'POST',
