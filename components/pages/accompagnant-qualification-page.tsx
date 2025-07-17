@@ -12,7 +12,8 @@ interface AccompagnantQualificationPageProps {
 
 interface QualificationStep {
   question: string
-  answers: { text: string; emoji: string; value: string }[]
+  answers?: { text: string; emoji: string; value: string }[]
+  type?: "input"
 }
 
 export default function AccompagnantQualificationPage({ category, onBack }: AccompagnantQualificationPageProps) {
@@ -22,295 +23,266 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
   const [inputValue, setInputValue] = useState("")
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // Fonction pour faire défiler vers le bas
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
-
-  // Défilement automatique quand les messages changent
   useEffect(() => {
-    scrollToBottom()
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [currentStep, userAnswers, showInitialMessage])
 
-const getQualificationSteps = (categoryName: string): QualificationStep[] => {
-  const commonSteps = [
-    {
-      question: "La personne a-t-elle déjà fait des démarches dans ce domaine ?",
-      answers: [
-        { text: "Oui", emoji: "👍", value: "yes" },
-        { text: "Non", emoji: "👎", value: "no" },
+  const getQualificationSteps = (categoryName: string): QualificationStep[] => {
+    const commonSteps: QualificationStep[] = [
+      {
+        question: "La personne a-t-elle déjà fait des démarches dans ce domaine ?",
+        answers: [
+          { text: "Oui", emoji: "👍", value: "yes" },
+          { text: "Non", emoji: "👎", value: "no" },
+        ],
+      },
+      {
+        question: "Quels documents la personne possède-t-elle ?",
+        answers: [
+          { text: "Attestation de demande d'asile (ADA)", emoji: "📄", value: "ada" },
+          { text: "Attestation prolongation d'instruction (API)", emoji: "📋", value: "api" },
+          { text: "Carte de séjour", emoji: "💳", value: "carte_sejour" },
+          { text: "Titre de séjour réfugié", emoji: "🆔", value: "titre_sejour" },
+          { text: "Passeport", emoji: "📕", value: "passeport" },
+          { text: "Récépissé décision favorable", emoji: "✅", value: "recepisse" },
+          { text: "Aucun", emoji: "❌", value: "aucun" },
+        ],
+      },
+      {
+        question: "Quel est le genre de la personne ?",
+        answers: [
+          { text: "Homme", emoji: "👨", value: "male" },
+          { text: "Femme", emoji: "👩", value: "female" },
+        ],
+      },
+      {
+        question: "Quel est l'âge de la personne ?",
+        type: "input"
+      },
+      {
+        question: "Quel est le niveau de français de la personne ?",
+        answers: [
+          { text: "A1 (Débutant)", emoji: "🟢", value: "a1" },
+          { text: "A2 (Élémentaire)", emoji: "🟡", value: "a2" },
+          { text: "B1 (Intermédiaire)", emoji: "🟠", value: "b1" },
+          { text: "B2 (Intermédiaire supérieur)", emoji: "🔵", value: "b2" },
+          { text: "C1 (Avancé)", emoji: "🟣", value: "c1" },
+          { text: "C2 (Maîtrise)", emoji: "🔴", value: "c2" },
+        ],
+      },
+      {
+        question: "Quelle est la langue courante de la personne ?",
+        answers: [
+          { text: "Français", emoji: "🇫🇷", value: "french" },
+          { text: "Anglais", emoji: "🇬🇧", value: "english" },
+          { text: "Arabe", emoji: "🌍", value: "arabic" },
+          { text: "Autre", emoji: "🗣️", value: "other" },
+        ],
+      },
+      {
+        question: "Quelle est la ville de domiciliation de la personne ?",
+        type: "input"
+      },
+      {
+        question: "Quel est le département de domiciliation de la personne ?",
+        type: "input"
+      },
+      {
+        question: "La personne est-elle en situation de handicap ?",
+        answers: [
+          { text: "Oui", emoji: "♿", value: "yes" },
+          { text: "Non", emoji: "👍", value: "no" },
+        ],
+      },
+      {
+        question: "La personne a-t-elle des enfants ?",
+        answers: [
+          { text: "Oui", emoji: "👶", value: "yes" },
+          { text: "Non", emoji: "🚫", value: "no" },
+        ],
+      },
+      {
+        question: "Combien d'enfants a-t-elle ?",
+        type: "input"
+      },
+    ]
+
+    const specificSteps: { [key: string]: QualificationStep[] } = {
+      Santé: [
+        {
+          question: "La personne a-t-elle une couverture sociale (Carte Sécu, CMU, AME) ?",
+          answers: [
+            { text: "Oui", emoji: "💳", value: "yes" },
+            { text: "Non", emoji: "❌", value: "no" },
+          ],
+        },
       ],
-    },
-  ];
+      Emploi: [
+        {
+          question: "La personne réside-t-elle en France depuis plus de 6 mois ou 5 ans ?",
+          answers: [
+            { text: "Plus de 6 mois", emoji: "🏠", value: "6_months" },
+            { text: "Plus de 5 ans", emoji: "🏡", value: "5_years" },
+            { text: "Moins de 6 mois", emoji: "❌", value: "less_6_months" },
+          ],
+        },
+        {
+          question: "Quel est le niveau scolaire de la personne ?",
+          answers: [
+            { text: "Primaire", emoji: "📚", value: "primary" },
+            { text: "Collège", emoji: "🎓", value: "middle" },
+            { text: "Lycée", emoji: "🎒", value: "high" },
+            { text: "Supérieur", emoji: "🎓", value: "higher" },
+          ],
+        },
+        {
+          question: "La personne est-elle inscrite à France Travail ?",
+          answers: [
+            { text: "Oui", emoji: "✅", value: "yes" },
+            { text: "Non", emoji: "❌", value: "no" },
+          ],
+        },
+        {
+          question: "La personne a-t-elle déjà travaillé en France ?",
+          answers: [
+            { text: "Oui", emoji: "👍", value: "yes" },
+            { text: "Non", emoji: "👎", value: "no" },
+          ],
+        },
+        {
+          question: "La personne a-t-elle un CV à jour ?",
+          answers: [
+            { text: "Oui", emoji: "👍", value: "yes" },
+            { text: "Non", emoji: "👎", value: "no" },
+          ],
+        },
+      ],
+      // Tu peux ajouter ici les autres catégories : Logement, Droits, etc.
+    }
 
-  const steps: { [key: string]: QualificationStep[] } = {
-    Santé: [
-      ...commonSteps,
-      {
-        question: "La personne a un numéro de sécurité sociale ?",
-        answers: [
-          { text: "Oui", emoji: "👍", value: "yes" },
-          { text: "Non", emoji: "👎", value: "no" },
-        ],
-      },
-      {
-        question: "C'est un numéro provisoire ?",
-        answers: [
-          { text: "Oui", emoji: "👍", value: "yes" },
-          { text: "Non", emoji: "👎", value: "no" },
-        ],
-      },
-      {
-        question: "La personne est en situation de handicap ?",
-        answers: [
-          { text: "Oui", emoji: "👍", value: "yes" },
-          { text: "Non", emoji: "👎", value: "no" },
-        ],
-      },
-    ],
-    Emploi: [
-      ...commonSteps,
-      {
-        question: "La personne a-t-elle déjà travaillé en France ?",
-        answers: [
-          { text: "Oui", emoji: "👍", value: "yes" },
-          { text: "Non", emoji: "👎", value: "no" },
-        ],
-      },
-      {
-        question: "La personne a-t-elle un CV à jour ?",
-        answers: [
-          { text: "Oui", emoji: "👍", value: "yes" },
-          { text: "Non", emoji: "👎", value: "no" },
-        ],
-      },
-      {
-        question: "La personne est-elle inscrite à Pôle Emploi ?",
-        answers: [
-          { text: "Oui", emoji: "👍", value: "yes" },
-          { text: "Non", emoji: "👎", value: "no" },
-        ],
-      },
-    ],
-    Logement: [
-      ...commonSteps,
-      {
-        question: "La personne a-t-elle actuellement un logement ?",
-        answers: [
-          { text: "Oui", emoji: "👍", value: "yes" },
-          { text: "Non", emoji: "👎", value: "no" },
-        ],
-      },
-      {
-        question: "Souhaite-t-elle faire une demande de logement social ?",
-        answers: [
-          { text: "Oui", emoji: "👍", value: "yes" },
-          { text: "Non", emoji: "👎", value: "no" },
-        ],
-      },
-      {
-        question: "Connaît-elle ses droits aux aides au logement ?",
-        answers: [
-          { text: "Oui", emoji: "👍", value: "yes" },
-          { text: "Non", emoji: "👎", value: "no" },
-        ],
-      },
-    ],
-  };
-
-  return steps[categoryName] || commonSteps;
-};
-
+    return [...commonSteps, ...(specificSteps[categoryName] || [])]
+  }
 
   const qualificationSteps = getQualificationSteps(category)
 
-  const handleInitialAccept = () => {
-    setShowInitialMessage(false)
-  }
-
-  const handleSuggestionClick = (suggestion: string) => {
-    setInputValue(suggestion)
-  }
+  const handleInitialAccept = () => setShowInitialMessage(false)
 
   const handleAnswer = (answer: string) => {
-    const newAnswers = [...userAnswers, answer]
-    setUserAnswers(newAnswers)
+    setUserAnswers([...userAnswers, answer])
+    setCurrentStep((prev) => prev + 1)
+  }
 
-    if (currentStep < qualificationSteps.length - 1) {
-      setCurrentStep(currentStep + 1)
-    } else {
-      // Qualification terminée - afficher les suggestions finales
-      setCurrentStep(currentStep + 1) // Pour déclencher l'affichage des suggestions
-    }
+  const handleInputAnswer = () => {
+    if (!inputValue.trim()) return
+    handleAnswer(inputValue.trim())
+    setInputValue("")
   }
 
   const renderMessages = () => {
     const messages = []
 
-    // Message initial
     if (showInitialMessage) {
       messages.push(
-        <div key="initial" className="mb-8">
-          <div className="bg-[#f4f4f4] p-4 rounded-2xl rounded-tl-md relative max-w-[90%]">
-            <p className="text-base text-[#414143]">
-              Vous avez choisi : {category}. Je vais vous poser des questions sur la personne que vous accompagnez afin
-              de comprendre sa situation.
-            </p>
-            <Button variant="ghost" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8">
-              <Play className="w-4 h-4 text-[#414143] fill-current" />
-            </Button>
+        <div key="intro" className="mb-8">
+          <div className="bg-[#f4f4f4] p-4 rounded-2xl rounded-tl-md max-w-[90%] mx-auto">
+
+            <p>Vous avez choisi : {category}. Nous allons poser quelques questions sur la personne accompagnée.</p>
           </div>
           <div className="flex justify-center mt-4">
-            <Button
-              onClick={handleInitialAccept}
-              className="bg-[#919191] hover:bg-gray-600 text-white px-6 py-2 rounded-full flex items-center gap-2"
-            >
-              <span>👍</span>
-              <span>D'accord</span>
+            <Button onClick={handleInitialAccept} className="bg-[#919191] text-white rounded-full px-6 py-2">
+              👍 D'accord
             </Button>
           </div>
-        </div>,
+        </div>
       )
-    }
-
-    // Questions et réponses précédentes
-    if (!showInitialMessage) {
-      for (let i = 0; i <= Math.min(currentStep, userAnswers.length - 1); i++) {
+    } else {
+      for (let i = 0; i < currentStep; i++) {
         const step = qualificationSteps[i]
-        const userAnswer = userAnswers[i]
-
-        // Question
-        messages.push(
-          <div key={`question-${i}`} className="mb-4">
-            <div className="bg-[#f4f4f4] p-4 rounded-2xl rounded-tl-md relative max-w-[90%]">
-              <p className="text-base text-[#414143]">{step.question}</p>
-              <Button variant="ghost" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8">
-                <Play className="w-4 h-4 text-[#414143] fill-current" />
-              </Button>
-            </div>
-          </div>,
-        )
-
-        // Réponse de l'utilisateur (si elle existe)
-        if (userAnswer) {
-          const answerData = step.answers.find((a) => a.value === userAnswer)
-          if (answerData) {
-            messages.push(
-              <div key={`answer-${i}`} className="mb-8 flex justify-center">
-                <Button disabled className="bg-[#919191] text-white px-6 py-2 rounded-full flex items-center gap-2">
-                  <span>{answerData.emoji}</span>
-                  <span>{answerData.text}</span>
-                </Button>
-              </div>,
-            )
-          }
-        }
-      }
-
-      // Question actuelle (si pas encore répondue)
-      if (currentStep < qualificationSteps.length && currentStep >= userAnswers.length) {
-        const currentQuestion = qualificationSteps[currentStep]
+        const answer = userAnswers[i]
+        const answerLabel = step.answers?.find(a => a.value === answer)
 
         messages.push(
-          <div key={`current-question`} className="mb-4">
-            <div className="bg-[#f4f4f4] p-4 rounded-2xl rounded-tl-md relative max-w-[90%]">
-              <p className="text-base text-[#414143]">{currentQuestion.question}</p>
-              <Button variant="ghost" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8">
-                <Play className="w-4 h-4 text-[#414143] fill-current" />
+          <div key={`q-${i}`} className="mb-4">
+            <div className="bg-[#f4f4f4] p-4 rounded-2xl rounded-tl-md max-w-[90%]">
+              <p>{step.question}</p>
+            </div>
+            <div className="flex justify-center mt-2">
+              <Button disabled className="bg-[#919191] text-white rounded-full px-4 py-2">
+                {answerLabel ? `${answerLabel.emoji} ${answerLabel.text}` : answer}
               </Button>
             </div>
-            <div className="flex justify-center mt-4 gap-4">
-              {currentQuestion.answers.map((answer, index) => (
-                <Button
-                  key={index}
-                  onClick={() => handleAnswer(answer.value)}
-                  className="bg-[#919191] hover:bg-gray-600 text-white px-6 py-2 rounded-full flex items-center gap-2"
-                >
-                  <span>{answer.emoji}</span>
-                  <span>{answer.text}</span>
-                </Button>
-              ))}
-            </div>
-          </div>,
+          </div>
         )
       }
-    }
 
-    // Suggestions finales après qualification terminée
-    if (currentStep >= qualificationSteps.length && userAnswers.length === qualificationSteps.length) {
-      const finalSuggestions = ["J'ai perdu ma carte vitale", "Renouveler ma carte vitale", "Obtenir une carte vitale"]
-
-      messages.push(
-        <div key="final-suggestions" className="mb-8">
-          <div className="bg-[#f4f4f4] p-4 rounded-2xl rounded-tl-md relative max-w-[90%] mb-4">
-            <p className="text-base text-[#414143]">
-              Merci ! Maintenant vous pouvez poser votre question ou choisir une question simple.
-            </p>
-            <Button variant="ghost" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8">
-              <Play className="w-4 h-4 text-[#414143] fill-current" />
-            </Button>
+      if (currentStep < qualificationSteps.length) {
+        const current = qualificationSteps[currentStep]
+        messages.push(
+          <div key="current" className="mb-4">
+            <div className="bg-[#f4f4f4] p-4 rounded-2xl rounded-tl-md max-w-[90%]">
+              <p>{current.question}</p>
+            </div>
+            {current.type === "input" ? (
+              <div className="flex justify-center mt-4">
+                <div className="flex gap-2 w-full max-w-md">
+                  <input
+                    type="text"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    className="px-4 py-2 border rounded-full flex-1"
+                  />
+                  <Button onClick={handleInputAnswer} className="bg-[#919191] text-white rounded-full px-6 py-2">
+                    Valider
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-2 mt-4 justify-center">
+                {current.answers?.map((ans, idx) => (
+                  <Button
+                    key={idx}
+                    onClick={() => handleAnswer(ans.value)}
+                    className="bg-[#919191] text-white rounded-full px-4 py-2"
+                  >
+                    {ans.emoji} {ans.text}
+                  </Button>
+                ))}
+              </div>
+            )}
           </div>
-
-          <div className="space-y-3">
-            {finalSuggestions.map((suggestion, index) => (
-              <Button
-                key={index}
-                onClick={() => handleSuggestionClick(suggestion)}
-                variant="outline"
-                className="w-full h-16 p-4 text-left border-[#e7e7e7] bg-[#f5f5f5] hover:bg-gray-100 rounded-2xl text-[#585858] text-sm font-normal"
-              >
-                {suggestion}
-              </Button>
-            ))}
-          </div>
-        </div>,
-      )
+        )
+      }
     }
 
     return messages
   }
 
   return (
-    <div className="min-h-screen bg-[#ffffff] flex flex-col pb-24">
-      {/* Header */}
-      <header className="flex items-center justify-between py-3 px-6 border-b border-gray-200">
+    <div className="min-h-screen bg-white flex flex-col pb-24">
+      <header className="flex items-center justify-between px-6 py-3 border-b">
         <Button variant="ghost" size="icon" onClick={onBack}>
-          <Menu className="w-6 h-6 text-[#414143]" />
+          <Menu className="w-6 h-6 text-gray-700" />
         </Button>
-        <div className="flex items-center gap-3">
-          <img
-            src="/images/emmaus-logo.png"
-            alt="Emmaus Connect"
-            className="h-20 w-auto cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => (window.location.href = "/")}
-          />
-        </div>
+        <img src="/images/emmaus-logo.png" className="h-20 w-auto" onClick={() => (window.location.href = "/")}/>
         <Button variant="ghost" size="icon">
-          <MoreVertical className="w-6 h-6 text-[#414143]" />
+
+          <MoreVertical className="w-6 h-6 text-gray-700" />
         </Button>
       </header>
 
-      {/* Chat Content */}
       <div className="flex-1 flex justify-center overflow-hidden">
         <div className="w-full max-w-2xl p-6 flex flex-col">
-          {/* Assistant Header */}
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-sm">😊</div>
-            <span className="text-base font-medium text-[#414143]">Assistant Triptik</span>
+            <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">😊</div>
+            <span className="text-base font-medium text-gray-800">Assistant Triptik</span>
           </div>
-
-          {/* Messages Container - Scrollable */}
-          <div className="flex-1 overflow-y-auto">
-            <div className="space-y-4">
-              {renderMessages()}
-              {/* Référence pour le défilement automatique */}
-              <div ref={messagesEndRef} />
-            </div>
+          <div className="flex-1 overflow-y-auto space-y-4">
+            {renderMessages()}
+            <div ref={messagesEndRef} />
           </div>
         </div>
       </div>
 
-      {/* Fixed Chat Input */}
       <ChatInput onSendMessage={(message) => setInputValue(message)} />
     </div>
   )

@@ -75,6 +75,9 @@ export default function ProfileNationalityPage({ onBack, onNext }: ProfileNation
   return (
     <div className="min-h-screen bg-[#ffffff] flex items-center justify-center p-6">
       <div className="w-full max-w-md">
+        <Button variant="ghost" onClick={onBack} className="mb-6">
+          ← Retour
+        </Button>
         <div className="text-center mb-16">
           <h1 className="text-3xl font-bold text-[#414143] mb-16">Mon profil</h1>
         </div>

@@ -1,8 +1,7 @@
 "use client"
-
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
-import ProfileBirthDatePage from "./profile-birth-date-page"
+import ProfileChildrenPage from "./profile-children-page" // Importez le composant ProfileChildrenPage
 
 interface ProfileDisabilityPageProps {
   onBack: () => void
@@ -12,7 +11,7 @@ interface ProfileDisabilityPageProps {
 export default function ProfileDisabilityPage({ onBack, onNext }: ProfileDisabilityPageProps) {
   const [disability, setDisability] = useState<"oui" | "non" | null>(null)
   const [numero, setNumero] = useState<string | null>(null)
-  const [currentStep, setCurrentStep] = useState<"disability" | "birthdate">("disability")
+  const [currentStep, setCurrentStep] = useState<"disability" | "children">("disability")
 
   useEffect(() => {
     const stored = localStorage.getItem("uid")
@@ -24,38 +23,31 @@ export default function ProfileDisabilityPage({ onBack, onNext }: ProfileDisabil
       alert("Merci de sélectionner une réponse.")
       return
     }
-
     if (!numero) {
       alert("Identifiant utilisateur introuvable.")
       return
     }
-
     try {
       const res = await fetch("/api/update-handicap", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ numero, disability }),
       })
-
       const data = await res.json()
-
       if (!res.ok) {
         alert(data.error || "Erreur lors de l'enregistrement.")
         return
       }
-
       console.log("✅ Situation de handicap enregistrée :", data)
-
-      // Aller vers la page anniversaire
-      setCurrentStep("birthdate")
+      setCurrentStep("children")
     } catch (err) {
       console.error("Erreur réseau :", err)
       alert("Erreur réseau")
     }
   }
 
-  if (currentStep === "birthdate")
-    return <ProfileBirthDatePage onBack={() => setCurrentStep("disability")} onNext={onNext} />
+  if (currentStep === "children")
+    return <ProfileChildrenPage onBack={() => setCurrentStep("disability")} onNext={onNext} />
 
   return (
     <div className="min-h-screen bg-[#ffffff] flex items-center justify-center p-6">
@@ -63,7 +55,6 @@ export default function ProfileDisabilityPage({ onBack, onNext }: ProfileDisabil
         <div className="text-center mb-16">
           <h1 className="text-3xl font-bold text-[#414143] mb-16">Mon profil</h1>
         </div>
-
         <div className="mb-8">
           <p className="block text-lg font-medium text-[#414143] mb-6">Avez-vous une situation de handicap ?</p>
           <div className="flex gap-4">
@@ -81,10 +72,12 @@ export default function ProfileDisabilityPage({ onBack, onNext }: ProfileDisabil
             </Button>
           </div>
         </div>
-
         <div className="flex gap-4 mt-8">
-          <Button onClick={onBack} className="flex-1 bg-gray-300 text-black py-4 text-base rounded-lg">
-            Retour
+          <Button
+            onClick={onBack}
+            className="flex-1 bg-gray-300 text-black py-4 rounded-lg"
+          >
+            Précédent
           </Button>
           <Button
             onClick={handleNext}
