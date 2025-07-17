@@ -64,7 +64,7 @@ export default function SimpleChatDisplay({ className = "" }: SimpleChatDisplayP
                     <ReactMarkdown 
                       components={{
                         h1: ({node, ...props}) => <h1 className="text-xl font-bold my-2" {...props} />,
-                        h2: ({node, ...props}) => <h2 className="text-lg font-bold my-2" {...props} />,
+                        h2: ({node, ...props}) => <h2 className="text-lg font-bold my-4" {...props} />,
                         h3: ({node, ...props}) => <h3 className="text-base font-bold my-1" {...props} />,
                         p: ({node, ...props}) => <p className="text-sm leading-relaxed my-1" {...props} />,
                         ul: ({node, ...props}) => <ul className="list-disc list-inside my-2" {...props} />,

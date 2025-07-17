@@ -323,9 +323,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
                   dispatch({ type: 'UPDATE_MESSAGE', payload: assistantMessage })
                 } else if (data.type === 'end') {
                   // Mettre à jour l'ID de conversation si nécessaire
-                  if (data.conversationId && !state.currentConversation) {
-                    dispatch({ type: 'SET_CURRENT_CONVERSATION', payload: data.conversationId })
-                    await loadConversations()
+      if (data.conversationId && !state.currentConversation) {
+        dispatch({ type: 'SET_CURRENT_CONVERSATION', payload: data.conversationId })
+        await loadConversations()
                   }
                 } else if (data.type === 'error') {
                   throw new Error(data.error)
