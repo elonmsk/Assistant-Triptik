@@ -14,6 +14,8 @@ import CreateAccountSimplePage from "@/components/pages/create-account-simple-pa
 import { AccompagneSideMenu, ChatInput } from "@/components/ui-custom";
 import { Button } from "@/components/ui/button";
 import { Menu, User } from "lucide-react";
+import { useChat } from '@/contexts/ChatContext';
+import SimpleChatDisplay from '@/components/ui-custom/simple-chat-display';
 
 interface AccompagnePageProps {
   isLoggedIn?: boolean;
@@ -38,25 +40,45 @@ export default function AccompagnePage({
   const [userData, setUserData] = useState<any | null>(null);
   const [showUserModal, setShowUserModal] = useState(false);
 
+  // Hook du contexte chat
+  const { setUserInfo } = useChat();
+
   useEffect(() => {
     if (propIsLoggedIn && initialCategory) {
       setIsLoggedIn(true);
       setSelectedCategory(initialCategory);
-      const numero = localStorage.getItem("uid");
+      const numero = localStorage.getItem("uid") || localStorage.getItem("numero");
       if (numero) {
         setNumeroUnique(numero);
       }
     } else {
-      localStorage.removeItem("numero");
-      setIsLoggedIn(false);
-      setNumeroUnique(null);
+      // Vérifier si l'utilisateur a un numéro sauvegardé sans forcer la connexion
+      const numero = localStorage.getItem("uid") || localStorage.getItem("numero");
+      if (numero && !numero.startsWith('guest_')) {
+        setNumeroUnique(numero);
+        setIsLoggedIn(true);
+      } else {
+        localStorage.removeItem("numero");
+        setIsLoggedIn(false);
+        setNumeroUnique(null);
+      }
     }
   }, [propIsLoggedIn, initialCategory]);
+
+  // Initialiser le contexte chat quand l'utilisateur est connecté ou en mode invité
+  useEffect(() => {
+    if (numeroUnique) {
+      setUserInfo(numeroUnique, 'accompagne');
+    }
+  }, [numeroUnique, setUserInfo]);
 
   const handleAccountCreationComplete = () => {
     setIsLoggedIn(true);
     setShowCreateAccount(false);
-    const numero = localStorage.getItem("numero");
+    setShowCreateAccountSimple(false);
+    
+    // Récupérer le numéro depuis localStorage (uid ou numero)
+    const numero = localStorage.getItem("uid") || localStorage.getItem("numero");
     if (numero) {
       setNumeroUnique(numero);
     }
@@ -85,6 +107,7 @@ export default function AccompagnePage({
 
   const handleSendMessage = (message: string) => {
     console.log("Message envoyé:", message);
+    // Le traitement est maintenant géré par le contexte ChatContext
   };
 
   const handleSeConnecter = () => {
@@ -99,6 +122,10 @@ export default function AccompagnePage({
 
   const handleContinuerSansConnexion = () => {
     setShowPremiereConnexion(false);
+    // Créer un ID temporaire pour l'utilisateur invité
+    const guestId = `guest_${Date.now()}`;
+    setNumeroUnique(guestId);
+    setIsLoggedIn(false); // Rester en mode "invité"
   };
 
   const handleBackFromAuth = () => {
@@ -159,7 +186,11 @@ export default function AccompagnePage({
       />
     );
   } else if (showCreateAccountSimple) {
-    content = <CreateAccountSimplePage onBack={() => setShowCreateAccountSimple(false)} />;
+    content = <CreateAccountSimplePage 
+      onBack={() => setShowCreateAccountSimple(false)}
+      onLogin={() => setShowCreateAccount(true)}
+      onComplete={handleAccountCreationComplete}
+    />;
   } else if (selectedCategory) {
     content = <CategoryQualificationPage category={selectedCategory} onBack={() => setSelectedCategory(null)} isConnected={isLoggedIn} />;
   } else if (showMyProcedures) {
@@ -231,13 +262,29 @@ export default function AccompagnePage({
   }
 
   const shouldShowHeaderAndChat = !showCreateAccount && !showPremiereConnexion && !showCreateAccountSimple && !selectedCategory;
+  const { state } = useChat();
+  const showChatMessages = shouldShowHeaderAndChat && (isLoggedIn || (numeroUnique && numeroUnique.startsWith('guest_'))) && state.currentMessages.length > 0;
 
   return (
     <div className="min-h-screen bg-[#ffffff] pb-24">
       {shouldShowHeaderAndChat && renderHeader()}
       {content}
+      
+      {/* Zone d'affichage des messages */}
+      {showChatMessages && (
+        <div className="fixed top-20 left-0 right-0 bottom-24 bg-white z-30 border-t border-gray-200">
+          <div className="h-full max-w-2xl mx-auto p-6 overflow-y-auto">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-sm">😊</div>
+              <span className="text-base font-medium text-[#414143]">Assistant Triptik</span>
+            </div>
+            <SimpleChatDisplay />
+          </div>
+        </div>
+      )}
+      
       {/* Remplacer ChatInput par un bouton de connexion si l'utilisateur n'est pas connecté */}
-      {shouldShowHeaderAndChat && !isLoggedIn && (
+      {shouldShowHeaderAndChat && !isLoggedIn && !numeroUnique && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
           <div className="max-w-2xl mx-auto">
             <Button
@@ -250,7 +297,20 @@ export default function AccompagnePage({
         </div>
       )}
       {/* Garder ChatInput si l'utilisateur est connecté */}
-      {shouldShowHeaderAndChat && isLoggedIn && <ChatInput onSendMessage={handleSendMessage} />}
+      {shouldShowHeaderAndChat && isLoggedIn && (
+        <ChatInput 
+          theme={selectedCategory || undefined}
+          onSendMessage={handleSendMessage} 
+        />
+      )}
+      {/* ChatInput pour les invités */}
+      {shouldShowHeaderAndChat && !isLoggedIn && numeroUnique && numeroUnique.startsWith('guest_') && (
+        <ChatInput 
+          theme={selectedCategory || undefined}
+          placeholder="Posez votre question (mode invité)"
+          onSendMessage={handleSendMessage} 
+        />
+      )}
       <AccompagneSideMenu
         isOpen={isMenuOpen}
         onClose={() => setIsMenuOpen(false)}

@@ -3,7 +3,8 @@
 import { Menu, MoreVertical, Play } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useRef, useEffect } from "react"
-import { ChatInput } from "@/components/ui-custom"
+import { ChatInput, SimpleChatDisplay } from "@/components/ui-custom"
+import { useChat } from '@/contexts/ChatContext'
 
 interface AccompagnantQualificationPageProps {
   category: string
@@ -21,7 +22,17 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
   const [userAnswers, setUserAnswers] = useState<string[]>([])
   const [showInitialMessage, setShowInitialMessage] = useState(true)
   const [inputValue, setInputValue] = useState("")
+  const [skipQualification, setSkipQualification] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  
+  // Hook du contexte chat
+  const { state, setUserInfo } = useChat()
+  
+  // Initialiser le contexte chat
+  useEffect(() => {
+    const numero = localStorage.getItem("uid") || localStorage.getItem("numero") || `accompagnant_${Date.now()}`
+    setUserInfo(numero, 'accompagnant')
+  }, [setUserInfo])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -272,18 +283,72 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
 
       <div className="flex-1 flex justify-center overflow-hidden">
         <div className="w-full max-w-2xl p-6 flex flex-col">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">😊</div>
-            <span className="text-base font-medium text-gray-800">Assistant Triptik</span>
-          </div>
-          <div className="flex-1 overflow-y-auto space-y-4">
-            {renderMessages()}
-            <div ref={messagesEndRef} />
-          </div>
+          {/* Si on a passé la qualification, afficher SEULEMENT le chat */}
+          {skipQualification ? (
+            <div className="h-full">
+              <SimpleChatDisplay />
+            </div>
+          ) : (
+            <>
+              {/* Header Assistant - seulement en mode qualification */}
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">😊</div>
+                <span className="text-base font-medium text-gray-800">Assistant Triptik</span>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto space-y-4">
+                {/* Messages de qualification */}
+                {renderMessages()}
+                
+                {/* Messages de chat intégrés directement */}
+                {state.currentMessages.length > 0 && (
+                  <SimpleChatDisplay />
+                )}
+                
+                <div ref={messagesEndRef} />
+              </div>
+            </>
+          )}
         </div>
       </div>
 
-      <ChatInput onSendMessage={(message) => setInputValue(message)} />
+      <ChatInput 
+        theme={category}
+        placeholder={skipQualification ? `Posez votre question sur ${category}...` : "Répondez à la question ou posez votre propre question..."}
+        onSendMessage={(message: string) => {
+          if (!skipQualification) {
+            if (showInitialMessage) {
+              if (message.toLowerCase().includes("d'accord")) {
+                handleInitialAccept()
+                return true // Géré, ne pas envoyer
+              } else if (message.trim()) {
+                setSkipQualification(true)
+                return false // Envoyer le message au chat
+              }
+            } else if (currentStep < qualificationSteps.length) {
+              const current = qualificationSteps[currentStep]
+              if (current.type === "input") {
+                setInputValue(message)
+                handleInputAnswer()
+                return true
+              } else {
+                const matchingAnswer = current.answers?.find(a => 
+                  message.toLowerCase().includes(a.text.toLowerCase()) ||
+                  message.toLowerCase().includes(a.value.toLowerCase())
+                )
+                if (matchingAnswer) {
+                  handleAnswer(matchingAnswer.value)
+                  return true
+                } else if (message.trim()) {
+                  setSkipQualification(true)
+                  return false
+                }
+              }
+            }
+          }
+          return false
+        }} 
+      />
     </div>
   )
 }

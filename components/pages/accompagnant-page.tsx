@@ -2,9 +2,11 @@
 
 import { Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { SideMenu, ChatInput } from "@/components/ui-custom"
 import { CommunityPage, SearchHistoryPage, LanguagesPage, AccompagnantQualificationPage } from "@/components/pages"
+import { useChat } from '@/contexts/ChatContext'
+import SimpleChatDisplay from '@/components/ui-custom/simple-chat-display'
 
 export default function AccompagnantPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -12,6 +14,16 @@ export default function AccompagnantPage() {
   const [showSearchHistory, setShowSearchHistory] = useState(false)
   const [showLanguages, setShowLanguages] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+
+  // Hook du contexte chat
+  const { setUserInfo } = useChat()
+
+  // Initialiser le contexte chat pour les accompagnants
+  useEffect(() => {
+    // Pour les accompagnants, on peut utiliser un ID générique ou récupérer depuis localStorage
+    const numero = localStorage.getItem("uid") || localStorage.getItem("numero") || `accompagnant_${Date.now()}`
+    setUserInfo(numero, 'accompagnant')
+  }, [setUserInfo])
 
   const handleCategoryClick = (categoryName: string) => {
     setSelectedCategory(categoryName)
@@ -25,6 +37,9 @@ export default function AccompagnantPage() {
     console.log("Message envoyé:", message)
     // Ici vous pouvez ajouter la logique pour traiter le message
   }
+
+  const { state } = useChat();
+  const showChatMessages = state.currentMessages.length > 0;
 
   if (showCommunity) {
     return <CommunityPage onBack={() => setShowCommunity(false)} />
@@ -113,8 +128,24 @@ export default function AccompagnantPage() {
         </div>
       </main>
 
+      {/* Zone d'affichage des messages */}
+      {showChatMessages && (
+        <div className="fixed top-20 left-0 right-0 bottom-24 bg-white z-30 border-t border-gray-200">
+          <div className="h-full max-w-2xl mx-auto p-6 overflow-y-auto">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-sm">😊</div>
+              <span className="text-base font-medium text-[#414143]">Assistant Triptik</span>
+            </div>
+            <SimpleChatDisplay />
+          </div>
+        </div>
+      )}
+
       {/* Fixed Chat Input */}
-      <ChatInput onSendMessage={handleSendMessage} />
+      <ChatInput 
+        theme={selectedCategory || undefined}
+        onSendMessage={handleSendMessage} 
+      />
 
       <SideMenu
         isOpen={isMenuOpen}
