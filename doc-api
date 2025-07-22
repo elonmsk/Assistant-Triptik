@@ -1,0 +1,472 @@
+
+# Documentation - API LLM sur Render
+
+## Vue d'ensemble
+
+L'Assistant Triptik utilise une API LLM externe hébergée sur **Render** pour traiter les demandes des utilisateurs et générer des réponses contextualisées. Cette documentation détaille l'architecture, les appels API, le traitement des réponses et l'affichage des messages.
+
+---
+
+## 🌐 Configuration de l'API Externe
+
+### Endpoint Principal
+```typescript
+const EXTERNAL_API_URL = process.env.EXTERNAL_API_URL || 
+  "https://assistant-nouveaux-arrivants-france.onrender.com";
+```
+
+### URLs d'API Disponibles
+- **API Standard** : `${EXTERNAL_API_URL}/api/chat`
+- **API Streaming** : `${EXTERNAL_API_URL}/api/chat` (avec streaming response)
+
+---
+
+## 🏗️ Architecture de l'API
+
+### Fichiers Principaux
+
+1. **`app/api/chat/route.ts`** - API standard avec réponse complète
+2. **`app/api/chat/stream/route.ts`** - API avec streaming en temps réel
+
+### Flux de Données
+```mermaid
+Frontend → Next.js API Route → Render API → LLM → Response Processing → Frontend Display
+```
+
+---
+
+## 📡 API Standard (`/api/chat/route.ts`)
+
+### 🔄 Processus de Requête
+
+#### 1. Validation des Données d'Entrée
+```typescript
+interface RequestBody {
+  messages: Array<{
+    content: string;
+    // autres propriétés du message
+  }>;
+}
+
+// Validation
+if (!messages || !Array.isArray(messages) || messages.length === 0) {
+  return NextResponse.json({ 
+    error: "Le tableau de messages est requis" 
+  }, { status: 400 });
+}
+```
+
+#### 2. Extraction du Message Utilisateur
+```typescript
+// Récupération du dernier message de l'utilisateur
+lastUserMessage = messages[messages.length - 1]?.content;
+
+if (!lastUserMessage || typeof lastUserMessage !== 'string') {
+  return NextResponse.json({ 
+    error: "Message invalide" 
+  }, { status: 400 });
+}
+```
+
+#### 3. Détection du Contexte
+```typescript
+// Analyse du message pour déterminer le contexte approprié
+const context = detectContext(lastUserMessage);
+```
+
+**Contextes Supportés :**
+- Personne ayant obtenu le statut de réfugié
+- Étudiant international en France
+- Travailleur étranger en France
+- Personne venue pour raisons familiales
+- Nouvel arrivant en France
+- Personne résidant en France (par défaut)
+
+#### 4. Appel vers l'API Render
+```typescript
+const controller = new AbortController();
+const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+
+const response = await fetch(`${EXTERNAL_API_URL}/api/chat`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    message: lastUserMessage.trim(),
+    context: context || undefined
+  }),
+  signal: controller.signal
+});
+```
+
+### 🛡️ Gestion des Erreurs et Fallback
+
+#### 1. Détection de Réponses Incomplètes
+```typescript
+function isResponseIncomplete(response: string): boolean {
+  const indicators = [
+    response.length < 50,                    // Réponse trop courte
+    response.endsWith('...'),                // Points de suspension
+    response.includes('reponse incomplete'), // Message explicite
+    /\b(dans|de|les|des|en)\s*$/.test(response.trim()), // Fin par préposition
+    /[,;]\s*$/.test(response.trim()),       // Fin par ponctuation
+    response.split('\n').length > 5 && !response.includes('📚'), // Long texte sans sources
+    response.includes('présente dans de ') && response.endsWith('de ') // Pattern spécifique
+  ];
+  
+  return indicators.some(condition => condition);
+}
+```
+
+#### 2. Système de Fallback
+```typescript
+// En cas d'erreur API ou timeout
+if (error.name === 'AbortError') {
+  const fallbackResponse = formatResponse(
+    generateFallbackResponse(lastUserMessage, context) + 
+    "\n\n⚠️ *Timeout de l'API - réponse de base fournie.*"
+  );
+  return NextResponse.json({ reply: fallbackResponse });
+}
+```
+
+### 📝 Formatage des Réponses
+
+#### Fonction `formatResponse()`
+```typescript
+function formatResponse(response: string): string {
+  let formatted = response;
+
+  // 1. Formater les sections avec émojis comme titres markdown
+  formatted = formatted.replace(/([🏥🖥️📱💻])\s*([^:\n]+)\s*:\s*([^\n]*)/g, '\n\n# $1 $2\n\n$3\n\n');
+  formatted = formatted.replace(/([📋📝⚠️🆘💡📚⏱️])\s*([^:\n]+)\s*:/g, '\n\n## $1 $2\n\n');
+  
+  // 2. Formater les étapes numérotées
+  formatted = formatted.replace(/(\d+)\.\s*\*\*([^*]+)\*\*\s*:/g, '\n\n### $1. $2\n\n');
+  
+  // 3. Formater les listes à puces
+  formatted = formatted.replace(/^[\s]*-\s*([^:\n]+):\s*([^\n]*)/gm, '- **$1**: $2');
+  
+  // 4. Formater les liens
+  formatted = formatted.replace(/\[([^\]]+)\]\s*\(\s*([^)]+)\s*\)/g, '[$1]($2)');
+  
+  // 5. Formater les alertes
+  formatted = formatted.replace(/⚠️\s*([^:\n]+):/g, '\n\n> ⚠️ **Attention**: $1\n\n');
+  
+  // 6. Nettoyer les sauts de ligne
+  formatted = formatted.replace(/\n{4,}/g, '\n\n\n');
+  
+  return formatted.trim();
+}
+```
+
+---
+
+## 🚀 API Streaming (`/api/chat/stream/route.ts`)
+
+### 🔄 Processus de Streaming
+
+#### 1. Création du Stream
+```typescript
+const encoder = new TextEncoder();
+const stream = new ReadableStream({
+  async start(controller) {
+    // Envoi du signal de début
+    controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'start' })}\n\n`));
+    
+    // Traitement et streaming de la réponse
+    // ...
+  }
+});
+```
+
+#### 2. Simulation du Streaming Mot par Mot
+```typescript
+// Découpage de la réponse en mots
+const words = formattedResponse.split(' ');
+let currentContent = '';
+
+for (let i = 0; i < words.length; i++) {
+  currentContent += (i > 0 ? ' ' : '') + words[i];
+  
+  // Envoi du chunk
+  controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+    type: 'content',
+    content: currentContent,
+    done: false
+  })}\n\n`));
+  
+  // Délai de 30ms entre les mots
+  await new Promise(resolve => setTimeout(resolve, 30));
+}
+```
+
+#### 3. Headers de Streaming
+```typescript
+return new NextResponse(stream, {
+  headers: {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  },
+});
+```
+
+---
+
+## 🎯 Détection de Contexte
+
+### Fonction `detectContext()`
+
+```typescript
+function detectContext(message: string): string | undefined {
+  const lowerMessage = message.toLowerCase();
+  
+  const contexts = [
+    {
+      keywords: ['réfugié', 'demandeur asile', 'protection subsidiaire', 'apatride'],
+      context: 'Personne ayant obtenu le statut de réfugié ou protection internationale'
+    },
+    {
+      keywords: ['étudiant', 'université', 'campus france', 'visa étudiant'],
+      context: 'Étudiant international en France'
+    },
+    {
+      keywords: ['travailleur', 'salarié', 'carte de séjour salarié', 'contrat de travail'],
+      context: 'Travailleur étranger en France'
+    },
+    {
+      keywords: ['conjoint français', 'mariage', 'regroupement familial', 'visa famille'],
+      context: 'Personne venue en France pour raisons familiales'
+    },
+    {
+      keywords: ['première fois', 'nouvel arrivant', 'viens d\'arriver', 'récemment arrivé'],
+      context: 'Nouvel arrivant en France'
+    }
+  ];
+
+  for (const { keywords, context } of contexts) {
+    if (keywords.some(keyword => lowerMessage.includes(keyword))) {
+      return context;
+    }
+  }
+
+  return 'Personne résidant en France';
+}
+```
+
+---
+
+## 🆘 Système de Fallback
+
+### Réponses de Secours Prédéfinies
+
+#### 1. Demande d'Asile + PUMa
+```typescript
+if (lowerMessage.includes('demande d\'asile') && 
+    (lowerMessage.includes('puma') || lowerMessage.includes('protection universelle'))) {
+  return `🏥 **PUMa et demande d'asile en cours**
+
+📋 **Délai de carence obligatoire :**
+- Depuis janvier 2020, il y a un **délai de carence de 3 mois** pour les demandeurs d'asile majeurs
+- Vous devez attendre 3 mois après l'enregistrement de votre demande d'asile
+
+⚠️ **Exception importante :**
+- Les **mineurs** demandeurs d'asile ont accès immédiat à la PUMa
+- Pas de délai d'attente pour les enfants
+
+🆘 **Pendant les 3 premiers mois :**
+- **Soins urgents** pris en charge aux urgences hospitalières
+- **PASS** (Permanences d'Accès aux Soins de Santé) dans les hôpitaux
+- Centres de santé communautaires
+- Consultations gratuites dans certaines associations
+
+📞 **Contacts utiles :**
+- CPAM : 36 46
+- 115 (urgence sociale)
+- Médecins du Monde, Médecins Sans Frontières
+
+⏰ **Après 3 mois :** Vous pourrez bénéficier de la PUMa complète.`;
+}
+```
+
+#### 2. Réfugié + Assurance Maladie
+```typescript
+if (lowerMessage.includes('réfugié') && lowerMessage.includes('assurance maladie')) {
+  return `🏥 **Assurance maladie et statut de réfugié**
+
+Félicitations pour l'obtention de votre statut de réfugié ! Concernant l'assurance maladie :
+
+📋 **Votre situation actuelle :**
+- Si vous bénéficiez actuellement de l'AME (Aide Médicale d'État), vous devez effectuer une nouvelle demande
+- Votre couverture ne se poursuit PAS automatiquement
+
+🔄 **Démarches à effectuer :**
+1. **Demande d'affiliation à l'Assurance Maladie** auprès de votre CPAM
+2. **Documents à fournir :**
+   - Récépissé ou carte de séjour "réfugié"
+   - Justificatif de domicile
+   - Pièce d'identité
+
+⏰ **Délais :**
+- Faites la demande **dès que possible** pour éviter toute interruption
+- La CPAM a 2 mois pour traiter votre dossier
+
+🎯 **Avantages du nouveau statut :**
+- Accès aux mêmes droits qu'un assuré français
+- Possibilité d'obtenir une carte Vitale
+- Prise en charge à 100% selon votre situation
+
+📞 **Contact :** 36 46 (service gratuit + prix d'un appel)
+
+⚠️ **Important :** N'attendez pas la fin de vos droits AME pour faire la demande !`;
+}
+```
+
+#### 3. Réponse Générale par Défaut
+```typescript
+return `👋 Bonjour ! Je suis l'assistant pour les nouveaux arrivants en France.
+
+Je peux vous aider sur :
+🏥 Santé (sécurité sociale, médecins)
+🏠 Logement (recherche, aides)
+📋 Administratif (cartes, permis)
+💼 Emploi et formation
+🚗 Transport
+💰 Finances
+
+${context ? `\n🎯 **Votre profil :** ${context}` : ''}
+
+N'hésitez pas à me poser une question plus précise !`;
+```
+
+---
+
+## 🔧 Intégration Frontend (État Actuel)
+
+### État de Développement
+```typescript
+// Dans les composants React (état actuel)
+const handleSendMessage = (message: string) => {
+  console.log("Message envoyé:", message);
+  // TODO: Appel vers /api/chat ou /api/chat/stream
+};
+```
+
+### Intégration Future Prévue
+```typescript
+// Implémentation prévue
+const handleSendMessage = async (message: string) => {
+  setIsLoading(true);
+  
+  try {
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: [{ content: message }]
+      })
+    });
+    
+    const data = await response.json();
+    setMessages(prev => [...prev, 
+      { content: message, role: 'user' },
+      { content: data.reply, role: 'assistant' }
+    ]);
+  } catch (error) {
+    console.error('Erreur API:', error);
+  } finally {
+    setIsLoading(false);
+  }
+};
+```
+
+---
+
+## ⚡ Performance et Optimisations
+
+### Timeouts et Limitations
+- **Timeout API** : 30 secondes maximum
+- **Fallback automatique** : En cas de timeout ou erreur
+- **Retry logic** : Non implémenté (fallback direct)
+
+### Gestion des Erreurs
+```typescript
+// Types d'erreurs gérées
+- AbortError (timeout)
+- API externe indisponible (status !== 200)
+- Réponse malformée
+- Erreurs de configuration ('unhandled errors in a TaskGroup')
+- Réponses incomplètes
+```
+
+### Optimisations Render
+- **API hébergée** : https://assistant-nouveaux-arrivants-france.onrender.com
+- **Variable d'environnement** : `EXTERNAL_API_URL`
+- **Fallback local** : Réponses prédéfinies si API indisponible
+
+---
+
+## 📊 Format de Réponse
+
+### Structure Standard
+```json
+{
+  "success": true,
+  "response": "Réponse formatée en markdown avec émojis et sections"
+}
+```
+
+### Structure d'Erreur
+```json
+{
+  "success": false,
+  "error": "Description de l'erreur"
+}
+```
+
+### Format de Streaming
+```
+data: {"type": "start"}
+
+data: {"type": "content", "content": "Début de réponse...", "done": false}
+
+data: {"type": "content", "content": "Réponse complète", "done": true}
+```
+
+---
+
+## 🚀 Évolutions Futures
+
+### Améliorations Prévues
+1. **Intégration frontend complète** des appels API
+2. **Gestion d'état des conversations** avec historique
+3. **Cache des réponses** pour optimiser les performances
+4. **Streaming réel** depuis l'API Render
+5. **Métadonnées de contexte** enrichies avec profil utilisateur
+6. **Retry logic** avec backoff exponentiel
+
+### Monitoring et Logging
+- Logs des erreurs API externe
+- Métriques de performance
+- Taux d'utilisation du fallback
+- Analyse des contextes détectés
+
+---
+
+## 🔐 Sécurité
+
+### Validations Implémentées
+- Validation des types de données d'entrée
+- Sanitization des messages utilisateur
+- Timeout pour éviter les requêtes infinies
+- Headers CORS appropriés pour le streaming
+
+### Considérations de Sécurité
+- Pas de stockage de données sensibles dans les logs
+- API key non exposée côté client
+- Validation côté serveur uniquement 

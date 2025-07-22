@@ -57,10 +57,10 @@ export default function AccompagnePage({
       if (numero && !numero.startsWith('guest_')) {
         setNumeroUnique(numero);
         setIsLoggedIn(true);
-      } else {
-        localStorage.removeItem("numero");
-        setIsLoggedIn(false);
-        setNumeroUnique(null);
+    } else {
+      localStorage.removeItem("numero");
+      setIsLoggedIn(false);
+      setNumeroUnique(null);
       }
     }
   }, [propIsLoggedIn, initialCategory]);
