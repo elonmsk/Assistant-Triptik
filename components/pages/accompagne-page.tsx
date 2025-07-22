@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import {
@@ -52,18 +51,18 @@ export default function AccompagnePage({
         setNumeroUnique(numero);
       }
     } else {
-      // Vérifier si l'utilisateur a un numéro sauvegardé sans forcer la connexion
+      // Ne pas automatiquement connecter l'utilisateur
       const numero = localStorage.getItem("uid") || localStorage.getItem("numero");
-      if (numero && !numero.startsWith('guest_')) {
+      if (numero) {
         setNumeroUnique(numero);
-        setIsLoggedIn(true);
-    } else {
-      localStorage.removeItem("numero");
-      setIsLoggedIn(false);
-      setNumeroUnique(null);
+        // Ne pas définir isLoggedIn à true ici
+      } else {
+        localStorage.removeItem("numero");
+        setNumeroUnique(null);
       }
     }
   }, [propIsLoggedIn, initialCategory]);
+
 
   // Initialiser le contexte chat quand l'utilisateur est connecté ou en mode invité
   useEffect(() => {
@@ -76,7 +75,6 @@ export default function AccompagnePage({
     setIsLoggedIn(true);
     setShowCreateAccount(false);
     setShowCreateAccountSimple(false);
-    
     // Récupérer le numéro depuis localStorage (uid ou numero)
     const numero = localStorage.getItem("uid") || localStorage.getItem("numero");
     if (numero) {
@@ -88,13 +86,11 @@ export default function AccompagnePage({
     if (!numeroUnique) return;
     const numeroInt = parseInt(numeroUnique, 10);
     console.log("👉 recherche numero =", numeroInt);
-
     const { data, error } = await supabase
       .from("info")
       .select("*")
       .eq("numero", numeroInt)
       .single();
-
     if (error) {
       console.error("Erreur Supabase", error);
       alert(`Erreur Supabase: ${error.message}`);
@@ -140,7 +136,6 @@ export default function AccompagnePage({
     localStorage.setItem("selectedTheme", categoryName);
     setSelectedCategory(categoryName);
     setIsMenuOpen(false);
-
     // Vérifiez si l'utilisateur est connecté
     if (!isLoggedIn) {
       setShowPremiereConnexion(true);
@@ -151,6 +146,18 @@ export default function AccompagnePage({
   const handleConnexionButtonClick = () => {
     setShowPremiereConnexion(true);
   };
+
+  // Fonction de déconnexion
+const handleLogout = () => {
+  localStorage.removeItem("uid");
+  localStorage.removeItem("numero");
+  setIsLoggedIn(false);
+  setNumeroUnique(null);
+  setUserData(null);
+  // Rediriger ou actualiser la page si nécessaire
+  window.location.reload();
+};
+
 
   const renderHeader = () => (
     <header className="flex items-center justify-between py-3 px-6 border-b border-gray-200">
@@ -165,9 +172,16 @@ export default function AccompagnePage({
           onClick={() => (window.location.href = "/")}
         />
       </div>
-      <Button variant="ghost" size="icon" onClick={handleLoadUserData}>
-        <User className="w-6 h-6 text-[#414143]" />
-      </Button>
+      <div className="flex items-center gap-3">
+        {isLoggedIn && (
+          <Button variant="ghost" size="icon" onClick={handleLogout}>
+            Déconnexion
+          </Button>
+        )}
+        <Button variant="ghost" size="icon" onClick={handleLoadUserData}>
+          <User className="w-6 h-6 text-[#414143]" />
+        </Button>
+      </div>
     </header>
   );
 
@@ -186,7 +200,7 @@ export default function AccompagnePage({
       />
     );
   } else if (showCreateAccountSimple) {
-    content = <CreateAccountSimplePage 
+    content = <CreateAccountSimplePage
       onBack={() => setShowCreateAccountSimple(false)}
       onLogin={() => setShowCreateAccount(true)}
       onComplete={handleAccountCreationComplete}
@@ -269,7 +283,6 @@ export default function AccompagnePage({
     <div className="min-h-screen bg-[#ffffff] pb-24">
       {shouldShowHeaderAndChat && renderHeader()}
       {content}
-      
       {/* Zone d'affichage des messages */}
       {showChatMessages && (
         <div className="fixed top-20 left-0 right-0 bottom-24 bg-white z-30 border-t border-gray-200">
@@ -282,7 +295,6 @@ export default function AccompagnePage({
           </div>
         </div>
       )}
-      
       {/* Remplacer ChatInput par un bouton de connexion si l'utilisateur n'est pas connecté */}
       {shouldShowHeaderAndChat && !isLoggedIn && !numeroUnique && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
@@ -298,17 +310,17 @@ export default function AccompagnePage({
       )}
       {/* Garder ChatInput si l'utilisateur est connecté */}
       {shouldShowHeaderAndChat && isLoggedIn && (
-        <ChatInput 
+        <ChatInput
           theme={selectedCategory || undefined}
-          onSendMessage={handleSendMessage} 
+          onSendMessage={handleSendMessage}
         />
       )}
       {/* ChatInput pour les invités */}
       {shouldShowHeaderAndChat && !isLoggedIn && numeroUnique && numeroUnique.startsWith('guest_') && (
-        <ChatInput 
+        <ChatInput
           theme={selectedCategory || undefined}
           placeholder="Posez votre question (mode invité)"
-          onSendMessage={handleSendMessage} 
+          onSendMessage={handleSendMessage}
         />
       )}
       <AccompagneSideMenu
@@ -328,7 +340,6 @@ export default function AccompagnePage({
           setIsMenuOpen(false);
         }}
       />
-
       {showUserModal && userData && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-xl w-full max-w-md shadow">
