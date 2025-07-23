@@ -87,42 +87,42 @@ export default function ProcessingIndicator({
   // Mode chat qui remplace complètement la bulle
   if (chatMode) {
     return (
-      <div className={`bg-gray-100 text-gray-800 p-3 rounded-2xl rounded-tl-md ${className}`}>
-        <div className="space-y-3">
+      <div className={`bg-gray-100 text-gray-800 p-4 rounded-2xl rounded-tl-md min-w-[400px] max-w-[600px] ${className}`}>
+        <div className="space-y-4">
           {/* En-tête avec icône et badges */}
-          <div className="flex items-center gap-2">
-            <div className={`p-1.5 rounded-full ${config.color} bg-opacity-10`}>
-              <IconComponent className={`w-3 h-3 ${config.textColor}`} />
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-full ${config.color} bg-opacity-10`}>
+              <IconComponent className={`w-4 h-4 ${config.textColor}`} />
             </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className={`text-xs ${config.textColor}`}>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge variant="outline" className={`text-sm ${config.textColor}`}>
                 {config.label}
               </Badge>
               {category && (
-                <Badge variant="secondary" className="text-xs">
+                <Badge variant="secondary" className="text-sm">
                   {category}
                 </Badge>
               )}
               {currentStep !== 'complete' && (
-                <Loader2 className="w-3 h-3 animate-spin text-gray-400" />
+                <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
               )}
             </div>
           </div>
           
           {/* Message */}
-          <p className="text-sm text-gray-600 break-words">{message}</p>
+          <p className="text-sm text-gray-600 break-words leading-relaxed">{message}</p>
           
           {/* Barre de progression */}
-          <div className="space-y-1">
-            <Progress value={progress} className="h-1.5" />
-            <div className="flex justify-between text-xs text-gray-500">
+          <div className="space-y-2">
+            <Progress value={progress} className="h-2" />
+            <div className="flex justify-between text-sm text-gray-500">
               <span>Progression</span>
               <span>{progress}%</span>
             </div>
           </div>
           
           {/* Étapes en bas */}
-          <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+          <div className="flex items-center justify-between pt-3 border-t border-gray-200 gap-2">
             {Object.entries(stepConfig).map(([step, stepConfig]) => {
               if (step === 'idle') return null
               
@@ -131,16 +131,16 @@ export default function ProcessingIndicator({
               const isCompleted = getStepOrder(currentStep) > getStepOrder(step)
               
               return (
-                <div key={step} className="flex flex-col items-center gap-1">
+                <div key={step} className="flex flex-col items-center gap-1 flex-1">
                   <div className={`
-                    p-1 rounded-full text-xs
+                    p-1.5 rounded-full text-xs
                     ${isCompleted ? 'bg-green-100 text-green-600' : ''}
                     ${isActive ? 'bg-blue-100 text-blue-600' : ''}
                     ${!isActive && !isCompleted ? 'bg-gray-100 text-gray-400' : ''}
                   `}>
-                    <StepIcon className="w-2.5 h-2.5" />
+                    <StepIcon className="w-3 h-3" />
                   </div>
-                  <span className={`text-xs ${isActive ? 'text-blue-600 font-medium' : 'text-gray-400'}`}>
+                  <span className={`text-xs text-center ${isActive ? 'text-blue-600 font-medium' : 'text-gray-400'}`}>
                     {stepConfig.label}
                   </span>
                 </div>

@@ -82,7 +82,7 @@ export default function MessageList({ messages, isLoading = false, className = "
           </Avatar>
 
           {/* Message */}
-          <div className={`flex flex-col max-w-[80%] ${
+          <div className={`flex flex-col max-w-[90%] ${
             message.role === 'user' ? 'items-end' : 'items-start'
           }`}>
             <Card className={`p-3 ${
