@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Card } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useChat, type Message } from '@/contexts/ChatContext'
+import ProcessingIndicator from './ProcessingIndicator'
 
 interface MessageListProps {
   messages: Message[]
@@ -110,6 +111,33 @@ export default function MessageList({ messages, isLoading = false, className = "
 
 // Composant pour l'indicateur de frappe
 export function TypingIndicator() {
+  const { state } = useChat()
+  const { processingState } = state
+
+  // Si on a un état de progression actif, utiliser le ProcessingIndicator
+  if (processingState.currentStep !== 'idle') {
+    return (
+      <div className="flex items-start gap-3">
+        <Avatar className="w-8 h-8 flex-shrink-0">
+          <AvatarFallback className="bg-green-100 text-green-600">
+            🤖
+          </AvatarFallback>
+        </Avatar>
+        
+        <div className="flex-1">
+          <ProcessingIndicator
+            currentStep={processingState.currentStep}
+            message={processingState.message}
+            progress={processingState.progress}
+            category={processingState.category}
+            chatMode={true}
+          />
+        </div>
+      </div>
+    )
+  }
+
+  // Fallback vers l'ancien indicateur si pas d'état de progression
   return (
     <div className="flex items-start gap-3">
       <Avatar className="w-8 h-8 flex-shrink-0">

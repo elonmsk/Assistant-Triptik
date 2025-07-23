@@ -279,7 +279,8 @@ const handleLogout = () => {
   const shouldShowHeaderAndChat = !showCreateAccount && !showPremiereConnexion && !showCreateAccountSimple && !selectedCategory;
   const { state } = useChat();
   const showChatMessages = shouldShowHeaderAndChat && (isLoggedIn || (numeroUnique && numeroUnique.startsWith('guest_'))) && state.currentMessages.length > 0;
-  const showProcessingIndicator = shouldShowHeaderAndChat && state.processingState.currentStep !== 'idle';
+  // Ne montrer l'indicateur fixe que s'il n'y a pas de messages de chat visibles
+  const showProcessingIndicator = shouldShowHeaderAndChat && state.processingState.currentStep !== 'idle' && !showChatMessages;
 
   return (
     <div className="min-h-screen bg-[#ffffff] pb-24">
@@ -287,12 +288,15 @@ const handleLogout = () => {
       {content}
       {/* Zone d'affichage des messages */}
       {showChatMessages && (
-        <div className="fixed top-20 left-0 right-0 bottom-24 bg-white z-30 border-t border-gray-200">
-          <div className="h-full max-w-2xl mx-auto p-6 overflow-y-auto">
-            <div className="flex items-center gap-3 mb-6">
+        <div className="fixed top-20 left-0 right-0 bottom-24 bg-white z-30 border-t border-gray-200 flex flex-col">
+          {/* En-tête de la zone de chat */}
+          <div className="max-w-2xl mx-auto p-4 border-b border-gray-100 w-full">
+            <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-sm">😊</div>
               <span className="text-base font-medium text-[#414143]">Assistant Triptik</span>
             </div>
+          </div>
+          <div className="flex-1 max-w-2xl mx-auto p-6 overflow-y-auto w-full">
             <SimpleChatDisplay />
           </div>
         </div>

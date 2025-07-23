@@ -120,8 +120,8 @@ export default function ChatInterface({
             className="flex-1 overflow-y-auto"
           />
           
-          {/* Indicateur de progression */}
-          {processingState.currentStep !== 'idle' && (
+          {/* Indicateur de progression - seulement si pas de messages */}
+          {processingState.currentStep !== 'idle' && currentMessages.length === 0 && (
             <div className="p-4 border-t border-gray-100 bg-white">
               <ProcessingIndicator
                 currentStep={processingState.currentStep}

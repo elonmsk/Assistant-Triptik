@@ -2,7 +2,8 @@
 
 import { useEffect, useRef } from 'react'
 import { useChat } from '@/contexts/ChatContext'
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown from 'react-markdown'
+import ProcessingIndicator from '@/components/chat/ProcessingIndicator'
 
 interface SimpleChatDisplayProps {
   className?: string
@@ -51,14 +52,26 @@ export default function SimpleChatDisplay({ className = "" }: SimpleChatDisplayP
               </div>
               <div className="bg-gray-100 text-gray-800 p-3 rounded-2xl rounded-tl-md">
                 {message.content === "L'assistant Triptik est en train d'écrire..." ? (
-                  <div className="flex items-center space-x-1">
-                    <span className="text-sm text-gray-600 italic">L'assistant Triptik est en train d'écrire</span>
-                    <div className="flex space-x-1">
-                      <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                      <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                      <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  // Utiliser le ProcessingIndicator si on a un état de progression actif
+                  state.processingState.currentStep !== 'idle' ? (
+                    <ProcessingIndicator
+                      currentStep={state.processingState.currentStep}
+                      message={state.processingState.message}
+                      progress={state.processingState.progress}
+                      category={state.processingState.category}
+                      chatMode={true}
+                    />
+                  ) : (
+                    // Fallback vers l'ancien indicateur
+                    <div className="flex items-center space-x-1">
+                      <span className="text-sm text-gray-600 italic">L'assistant Triptik est en train d'écrire</span>
+                      <div className="flex space-x-1">
+                        <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                        <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                        <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                      </div>
                     </div>
-                  </div>
+                  )
                 ) : (
                   <div className="prose prose-sm max-w-none">
                     <ReactMarkdown 

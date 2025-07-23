@@ -41,7 +41,8 @@ export default function AccompagnantPage() {
 
   const { state } = useChat();
   const showChatMessages = state.currentMessages.length > 0;
-  const showProcessingIndicator = state.processingState.currentStep !== 'idle';
+  // Ne montrer l'indicateur fixe que s'il n'y a pas de messages de chat visibles
+  const showProcessingIndicator = state.processingState.currentStep !== 'idle' && !showChatMessages;
 
   if (showCommunity) {
     return <CommunityPage onBack={() => setShowCommunity(false)} />

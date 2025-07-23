@@ -163,41 +163,72 @@ export default function ProcessingIndicatorDemo() {
         </div>
       </div>
 
-      <ProcessingIndicator
-        currentStep={currentStep}
-        message={message}
-        progress={progress}
-      />
+      {/* Mode normal */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Mode Normal (Complet)</h3>
+        <ProcessingIndicator
+          currentStep={currentStep}
+          message={message}
+          progress={progress}
+        />
+      </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <h3 className="font-semibold mb-2">État actuel :</h3>
-          <div className="space-y-1 text-sm">
-            <div><strong>Étape :</strong> {currentStep}</div>
-            <div><strong>Message :</strong> {message || 'Aucun'}</div>
-            <div><strong>Progression :</strong> {progress}%</div>
-          </div>
-        </div>
-
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <h3 className="font-semibold mb-2">Exemple sélectionné :</h3>
-          <div className="space-y-1 text-sm">
-            <div><strong>Requête :</strong> {exampleQueries[selectedExample]?.name}</div>
-            <div><strong>Question :</strong> {exampleQueries[selectedExample]?.query}</div>
-            <div><strong>Recherches :</strong> {exampleQueries[selectedExample]?.searchSteps.length}</div>
-            <div><strong>Sites :</strong> {exampleQueries[selectedExample]?.scrapingSteps.length}</div>
-          </div>
+      {/* Mode compact */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Mode Compact</h3>
+        <div className="bg-white border border-gray-200 rounded-lg p-4">
+          <ProcessingIndicator
+            currentStep={currentStep}
+            message={message}
+            progress={progress}
+            compact={true}
+          />
         </div>
       </div>
 
-      <div className="bg-yellow-50 p-4 rounded-lg">
-        <h3 className="font-semibold mb-2">Fonctionnalités démontrées :</h3>
-        <ul className="text-sm space-y-1">
-          <li>• <strong>Recherche adaptative :</strong> Les requêtes changent selon le contenu de la question</li>
-          <li>• <strong>Sites ciblés :</strong> Les sites scrapés s'adaptent au sujet</li>
-          <li>• <strong>Progression détaillée :</strong> Chaque étape montre des informations spécifiques</li>
-          <li>• <strong>Messages informatifs :</strong> L'utilisateur voit exactement ce qui se passe</li>
-        </ul>
+      {/* Mode chat - simulation d'une bulle de chat */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Mode Chat (Remplace la bulle)</h3>
+        <div className="flex items-start gap-3 max-w-[80%]">
+          <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0">
+            <span className="text-sm">🤖</span>
+          </div>
+          <ProcessingIndicator
+            currentStep={currentStep}
+            message={message}
+            progress={progress}
+            chatMode={true}
+          />
+        </div>
+      </div>
+
+      {/* Comparaison avec l'ancien indicateur */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Comparaison avec l'ancien indicateur</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <h4 className="font-medium mb-2">Ancien indicateur</h4>
+            <div className="bg-gray-100 text-gray-800 p-3 rounded-2xl rounded-tl-md">
+              <div className="flex items-center space-x-1">
+                <span className="text-sm text-gray-600 italic">L'assistant Triptik est en train d'écrire</span>
+                <div className="flex space-x-1">
+                  <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                  <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                  <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <h4 className="font-medium mb-2">Nouvel indicateur</h4>
+            <ProcessingIndicator
+              currentStep={currentStep}
+              message={message}
+              progress={progress}
+              chatMode={true}
+            />
+          </div>
+        </div>
       </div>
     </div>
   )

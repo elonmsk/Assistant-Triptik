@@ -36,7 +36,9 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
   }, [setUserInfo])
 
   // Variables pour l'indicateur de progression
-  const showProcessingIndicator = state.processingState.currentStep !== 'idle';
+  const showChatMessages = state.currentMessages.length > 0;
+  // Ne montrer l'indicateur fixe que s'il n'y a pas de messages de chat visibles
+  const showProcessingIndicator = state.processingState.currentStep !== 'idle' && !showChatMessages;
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
