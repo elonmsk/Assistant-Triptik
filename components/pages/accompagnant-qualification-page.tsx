@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { useState, useRef, useEffect } from "react"
 import { ChatInput, SimpleChatDisplay } from "@/components/ui-custom"
 import { useChat } from '@/contexts/ChatContext'
+import ProcessingIndicator from '@/components/chat/ProcessingIndicator'
 
 interface AccompagnantQualificationPageProps {
   category: string
@@ -33,6 +34,9 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
     const numero = localStorage.getItem("uid") || localStorage.getItem("numero") || `accompagnant_${Date.now()}`
     setUserInfo(numero, 'accompagnant')
   }, [setUserInfo])
+
+  // Variables pour l'indicateur de progression
+  const showProcessingIndicator = state.processingState.currentStep !== 'idle';
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -292,25 +296,41 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
             <>
               {/* Header Assistant - seulement en mode qualification */}
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">😊</div>
-                <span className="text-base font-medium text-gray-800">Assistant Triptik</span>
+                <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-sm">😊</div>
+                <span className="text-base font-medium text-[#414143]">Assistant Triptik</span>
               </div>
               
-              <div className="flex-1 overflow-y-auto space-y-4">
-                {/* Messages de qualification */}
-                {renderMessages()}
-                
-                {/* Messages de chat intégrés directement */}
-                {state.currentMessages.length > 0 && (
-                  <SimpleChatDisplay />
-                )}
-                
-                <div ref={messagesEndRef} />
+              <div className="flex-1 overflow-y-auto">
+                <div className="space-y-4">
+                  {/* Messages de qualification */}
+                  {renderMessages()}
+                  
+                  {/* Messages de chat intégrés directement */}
+                  {state.currentMessages.length > 0 && (
+                    <SimpleChatDisplay />
+                  )}
+                  
+                  <div ref={messagesEndRef} />
+                </div>
               </div>
             </>
           )}
         </div>
       </div>
+
+      {/* Indicateur de progression */}
+      {showProcessingIndicator && (
+        <div className="fixed top-20 left-0 right-0 z-40 bg-white border-t border-gray-200">
+          <div className="max-w-2xl mx-auto p-4">
+            <ProcessingIndicator
+              currentStep={state.processingState.currentStep}
+              message={state.processingState.message}
+              progress={state.processingState.progress}
+              category={state.processingState.category}
+            />
+          </div>
+        </div>
+      )}
 
       <ChatInput 
         theme={category}

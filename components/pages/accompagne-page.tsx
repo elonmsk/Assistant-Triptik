@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Menu, User } from "lucide-react";
 import { useChat } from '@/contexts/ChatContext';
 import SimpleChatDisplay from '@/components/ui-custom/simple-chat-display';
+import ProcessingIndicator from '@/components/chat/ProcessingIndicator';
 
 interface AccompagnePageProps {
   isLoggedIn?: boolean;
@@ -278,6 +279,7 @@ const handleLogout = () => {
   const shouldShowHeaderAndChat = !showCreateAccount && !showPremiereConnexion && !showCreateAccountSimple && !selectedCategory;
   const { state } = useChat();
   const showChatMessages = shouldShowHeaderAndChat && (isLoggedIn || (numeroUnique && numeroUnique.startsWith('guest_'))) && state.currentMessages.length > 0;
+  const showProcessingIndicator = shouldShowHeaderAndChat && state.processingState.currentStep !== 'idle';
 
   return (
     <div className="min-h-screen bg-[#ffffff] pb-24">
@@ -292,6 +294,20 @@ const handleLogout = () => {
               <span className="text-base font-medium text-[#414143]">Assistant Triptik</span>
             </div>
             <SimpleChatDisplay />
+          </div>
+        </div>
+      )}
+      
+      {/* Indicateur de progression */}
+      {showProcessingIndicator && (
+        <div className="fixed top-20 left-0 right-0 z-40 bg-white border-t border-gray-200">
+          <div className="max-w-2xl mx-auto p-4">
+            <ProcessingIndicator
+              currentStep={state.processingState.currentStep}
+              message={state.processingState.message}
+              progress={state.processingState.progress}
+              category={state.processingState.category}
+            />
           </div>
         </div>
       )}

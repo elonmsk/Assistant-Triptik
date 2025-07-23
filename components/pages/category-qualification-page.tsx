@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { useState, useRef, useEffect } from "react"
 import { ChatInput, SimpleChatDisplay } from "@/components/ui-custom"
 import { useChat } from '@/contexts/ChatContext'
+import ProcessingIndicator from '@/components/chat/ProcessingIndicator'
 
 interface CategoryQualificationPageProps {
   category: string
@@ -46,6 +47,9 @@ export default function CategoryQualificationPage({
   useEffect(() => {
     scrollToBottom()
   }, [currentStep, userAnswers, showInitialMessage])
+
+  // Variables pour l'indicateur de progression
+  const showProcessingIndicator = state.processingState.currentStep !== 'idle';
 
   const getQualificationSteps = (categoryName: string, isUserConnected: boolean): QualificationStep[] => {
     const commonSteps = [
@@ -588,6 +592,20 @@ export default function CategoryQualificationPage({
           )}
         </div>
       </div>
+
+      {/* Indicateur de progression */}
+      {showProcessingIndicator && (
+        <div className="fixed top-20 left-0 right-0 z-40 bg-white border-t border-gray-200">
+          <div className="max-w-2xl mx-auto p-4">
+            <ProcessingIndicator
+              currentStep={state.processingState.currentStep}
+              message={state.processingState.message}
+              progress={state.processingState.progress}
+              category={state.processingState.category}
+            />
+          </div>
+        </div>
+      )}
       <ChatInput 
         theme={category}
         placeholder={skipQualification ? `Posez votre question sur ${category}...` : "Répondez à la question ou posez votre propre question..."}

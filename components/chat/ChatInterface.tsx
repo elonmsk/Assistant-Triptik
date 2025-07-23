@@ -9,6 +9,7 @@ import MessageList from './MessageList'
 import { TypingIndicator } from './MessageList'
 import ChatHistoryPanel from './ChatHistoryPanel'
 import ChatInput from '@/components/ui-custom/chat-input'
+import ProcessingIndicator from './ProcessingIndicator'
 
 interface ChatInterfaceProps {
   userNumero: string
@@ -33,7 +34,8 @@ export default function ChatInterface({
     isLoadingMessages,
     isSendingMessage,
     error,
-    userNumero: contextUserNumero
+    userNumero: contextUserNumero,
+    processingState
   } = state
 
   // Initialiser les informations utilisateur si nécessaires
@@ -111,19 +113,31 @@ export default function ChatInterface({
         )}
 
         {/* Zone des messages */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden flex flex-col">
           <MessageList 
             messages={currentMessages}
             isLoading={isLoadingMessages}
-            className="h-full overflow-y-auto"
+            className="flex-1 overflow-y-auto"
           />
           
+          {/* Indicateur de progression */}
+          {processingState.currentStep !== 'idle' && (
+            <div className="p-4 border-t border-gray-100 bg-white">
+              <ProcessingIndicator
+                currentStep={processingState.currentStep}
+                message={processingState.message}
+                progress={processingState.progress}
+                category={processingState.category}
+              />
+            </div>
+          )}
+          
           {/* Indicateur de frappe */}
-          {isSendingMessage && (
+          {isSendingMessage && !processingState.currentStep || processingState.currentStep === 'idle' ? (
             <div className="p-4">
               <TypingIndicator />
             </div>
-          )}
+          ) : null}
         </div>
 
         {/* Zone d'input */}

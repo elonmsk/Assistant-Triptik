@@ -24,6 +24,23 @@ interface Conversation {
   messageCount: number
 }
 
+// Nouveau type pour les états de progression
+type ProcessingStep = 
+  | 'idle'
+  | 'analyzing'
+  | 'searching'
+  | 'scraping'
+  | 'processing'
+  | 'generating'
+  | 'complete'
+
+interface ProcessingState {
+  currentStep: ProcessingStep
+  message: string
+  progress: number // 0-100
+  category?: string
+}
+
 interface ChatState {
   // État des conversations
   conversations: Conversation[]
@@ -34,6 +51,9 @@ interface ChatState {
   isLoadingConversations: boolean
   isLoadingMessages: boolean
   isSendingMessage: boolean
+  
+  // Nouvel état de progression
+  processingState: ProcessingState
   
   // États d'erreur
   error: string | null
@@ -58,6 +78,9 @@ type ChatAction =
   | { type: 'UPDATE_CONVERSATION'; payload: { id: string; updates: Partial<Conversation> } }
   | { type: 'DELETE_CONVERSATION'; payload: string }
   | { type: 'UPDATE_MESSAGE'; payload: Message }
+  | { type: 'SET_PROCESSING_STATE'; payload: ProcessingState }
+  | { type: 'UPDATE_PROCESSING_STEP'; payload: { step: ProcessingStep; message: string; progress: number; category?: string } }
+  | { type: 'RESET_PROCESSING_STATE' }
 
 // État initial
 const initialState: ChatState = {
@@ -69,7 +92,12 @@ const initialState: ChatState = {
   isSendingMessage: false,
   error: null,
   userNumero: null,
-  userType: null
+  userType: null,
+  processingState: {
+    currentStep: 'idle',
+    message: '',
+    progress: 0
+  }
 }
 
 // Reducer
@@ -169,6 +197,30 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         )
       }
     
+    case 'SET_PROCESSING_STATE':
+      return {
+        ...state,
+        processingState: action.payload
+      }
+    
+    case 'UPDATE_PROCESSING_STEP':
+      return {
+        ...state,
+        processingState: {
+          ...state.processingState,
+          currentStep: action.payload.step,
+          message: action.payload.message,
+          progress: action.payload.progress,
+          category: action.payload.category
+        }
+      }
+    
+    case 'RESET_PROCESSING_STATE':
+      return {
+        ...state,
+        processingState: initialState.processingState
+      }
+    
     default:
       return state
   }
@@ -186,6 +238,11 @@ interface ChatContextType {
   createNewConversation: (theme?: string, title?: string) => Promise<string | null>
   deleteConversation: (conversationId: string) => Promise<void>
   clearError: () => void
+  
+  // Actions de progression
+  setProcessingState: (state: ProcessingState) => void
+  updateProcessingStep: (step: ProcessingStep, message: string, progress: number, category?: string) => void
+  resetProcessingState: () => void
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined)
@@ -259,6 +316,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
     dispatch({ type: 'SET_SENDING_MESSAGE', payload: true })
     dispatch({ type: 'SET_ERROR', payload: null })
+    
+    // Initialiser l'état de progression
+    dispatch({ type: 'SET_PROCESSING_STATE', payload: {
+      currentStep: 'analyzing',
+      message: 'Analyse de votre question...',
+      progress: 10
+    }})
 
     // Ajouter immédiatement le message utilisateur
     const userMessage: Message = {
@@ -321,12 +385,27 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
                     content: data.content
                   }
                   dispatch({ type: 'UPDATE_MESSAGE', payload: assistantMessage })
+                } else if (data.type === 'processing_step') {
+                  // Mettre à jour l'état de progression
+                  dispatch({ type: 'UPDATE_PROCESSING_STEP', payload: {
+                    step: data.step,
+                    message: data.message,
+                    progress: data.progress,
+                    category: data.category
+                  }})
                 } else if (data.type === 'end') {
                   // Mettre à jour l'ID de conversation si nécessaire
       if (data.conversationId && !state.currentConversation) {
         dispatch({ type: 'SET_CURRENT_CONVERSATION', payload: data.conversationId })
         await loadConversations()
                   }
+                  
+                  // Marquer comme terminé
+                  dispatch({ type: 'UPDATE_PROCESSING_STEP', payload: {
+                    step: 'complete',
+                    message: 'Réponse terminée',
+                    progress: 100
+                  }})
                 } else if (data.type === 'error') {
                   throw new Error(data.error)
                 }
@@ -342,6 +421,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Erreur inconnue' })
     } finally {
       dispatch({ type: 'SET_SENDING_MESSAGE', payload: false })
+      // Réinitialiser l'état de progression après un délai
+      setTimeout(() => {
+        dispatch({ type: 'RESET_PROCESSING_STATE' })
+      }, 2000)
     }
   }, [state.userNumero, state.userType, state.currentConversation, loadConversations])
 
@@ -417,7 +500,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     sendMessage,
     createNewConversation,
     deleteConversation,
-    clearError
+    clearError,
+    setProcessingState: (state: ProcessingState) => dispatch({ type: 'SET_PROCESSING_STATE', payload: state }),
+    updateProcessingStep: (step: ProcessingStep, message: string, progress: number, category?: string) => dispatch({ type: 'UPDATE_PROCESSING_STEP', payload: { step, message, progress, category } }),
+    resetProcessingState: () => dispatch({ type: 'RESET_PROCESSING_STATE' })
   }
 
   return (

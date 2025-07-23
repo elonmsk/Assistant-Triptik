@@ -119,12 +119,20 @@ export async function POST(req: Request) {
           
         } catch (error) {
           console.error("Erreur streaming:", error);
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ 
-            type: 'error', 
-            error: 'Erreur interne du serveur' 
-          })}\n\n`));
+          try {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ 
+              type: 'error', 
+              error: 'Erreur interne du serveur' 
+            })}\n\n`));
+          } catch (controllerError) {
+            console.error("Erreur lors de l'envoi de l'erreur:", controllerError);
+          }
         } finally {
-          controller.close();
+          try {
+            controller.close();
+          } catch (closeError) {
+            console.error("Erreur lors de la fermeture du contrôleur:", closeError);
+          }
         }
       }
     });
@@ -149,6 +157,16 @@ export async function POST(req: Request) {
   }
 }
 
+// Fonction helper pour envoyer des données de manière sécurisée
+function safeEnqueue(controller: ReadableStreamDefaultController, encoder: TextEncoder, data: any) {
+  try {
+    controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+  } catch (error) {
+    console.error("Erreur lors de l'envoi de données:", error);
+    throw error;
+  }
+}
+
 // Fonction pour appeler le LLM avec streaming simulé
 async function callRenderLLMStream(
   message: string, 
@@ -156,9 +174,65 @@ async function callRenderLLMStream(
   encoder: TextEncoder
 ) {
   try {
+    // Détecter la catégorie en premier
+    const category = detectCategory(message);
+    const categoryConfig = CATEGORY_SITES[category as keyof typeof CATEGORY_SITES];
+    
+    console.log(`📂 Catégorie détectée: ${categoryConfig.name}`);
+    
+    // Étape 1: Analyse
+    console.log('🚀 Envoi étape: analyzing')
+    safeEnqueue(controller, encoder, {
+      type: 'processing_step',
+      step: 'analyzing',
+      message: `Analyse de votre question (${categoryConfig.name})...`,
+      progress: 15,
+      category: categoryConfig.name
+    });
+    
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
     const context = detectContext(message);
+    
+    // Étape 2: Recherche
+    console.log('🔍 Envoi étape: searching')
+    
+    // Utiliser la requête spécifique à la catégorie
+    const searchQuery = categoryConfig.searchQuery(message);
+    
+    safeEnqueue(controller, encoder, {
+      type: 'processing_step',
+      step: 'searching',
+      message: `Recherche: "${searchQuery}"`,
+      progress: 30,
+      category: categoryConfig.name
+    });
+    
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
     const abortController = new AbortController();
     const timeoutId = setTimeout(() => abortController.abort(), 90000);
+
+    // Étape 3: Extraction (sites fixes par catégorie)
+    console.log('🌐 Envoi étape: scraping')
+    
+    // Utiliser les sites fixes de la catégorie
+    const sitesToScrape = categoryConfig.sites;
+    
+    for (let i = 0; i < sitesToScrape.length; i++) {
+      const site = sitesToScrape[i];
+      const progress = 50 + (i * 10); // 50%, 60%, etc.
+      
+      safeEnqueue(controller, encoder, {
+        type: 'processing_step',
+        step: 'scraping',
+        message: `Extraction: ${site}`,
+        progress: progress,
+        category: categoryConfig.name
+      });
+      
+      await new Promise(resolve => setTimeout(resolve, 600));
+    }
 
     const response = await fetch(`${EXTERNAL_API_URL}/api/chat`, {
       method: 'POST',
@@ -187,6 +261,56 @@ async function callRenderLLMStream(
       content = formatResponse(content);
     }
 
+    // Étape 4: Traitement
+    console.log('📄 Envoi étape: processing')
+    
+    const processingSteps = [
+      'Analyse des résultats',
+      'Filtrage des informations',
+      'Organisation des données',
+      'Validation des sources'
+    ];
+    
+    for (let i = 0; i < processingSteps.length; i++) {
+      const step = processingSteps[i];
+      const progress = 70 + (i * 3); // 70%, 73%, 76%, 79%
+      
+      safeEnqueue(controller, encoder, {
+        type: 'processing_step',
+        step: 'processing',
+        message: step,
+        progress: progress,
+        category: categoryConfig.name
+      });
+      
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
+
+    // Étape 5: Génération
+    console.log('🧠 Envoi étape: generating')
+    
+    const generationSteps = [
+      'Structuration de la réponse',
+      'Rédaction du contenu',
+      'Ajout des sources',
+      'Finalisation'
+    ];
+    
+    for (let i = 0; i < generationSteps.length; i++) {
+      const step = generationSteps[i];
+      const progress = 85 + (i * 3); // 85%, 88%, 91%, 94%
+      
+      safeEnqueue(controller, encoder, {
+        type: 'processing_step',
+        step: 'generating',
+        message: step,
+        progress: progress,
+        category: categoryConfig.name
+      });
+      
+      await new Promise(resolve => setTimeout(resolve, 150));
+    }
+
     // Simuler le streaming mot par mot
     const words = content.split(' ');
     let currentContent = '';
@@ -194,22 +318,22 @@ async function callRenderLLMStream(
     for (let i = 0; i < words.length; i++) {
       currentContent += (i > 0 ? ' ' : '') + words[i];
       
-      controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+      safeEnqueue(controller, encoder, {
         type: 'content',
         content: currentContent,
         done: false
-      })}\n\n`));
+      });
       
       // Délai de 30ms entre les mots
       await new Promise(resolve => setTimeout(resolve, 30));
     }
 
     // Signal final
-    controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+    safeEnqueue(controller, encoder, {
       type: 'content',
       content: currentContent,
       done: true
-    })}\n\n`));
+    });
 
     return { success: true, content: currentContent };
 
@@ -222,11 +346,11 @@ async function callRenderLLMStream(
     fallbackContent = formatResponse(fallbackContent);
 
     // Streamer le fallback
-    controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+    safeEnqueue(controller, encoder, {
       type: 'content',
       content: fallbackContent,
       done: true
-    })}\n\n`));
+    });
 
     return { success: true, content: fallbackContent };
   }
@@ -303,3 +427,115 @@ function generateFallbackResponse(message: string, context: string): string {
   }
   return `👋 Bonjour ! Je suis l'assistant pour les nouveaux arrivants en France.\n\nJe peux vous aider sur :\n🏥 Santé (sécurité sociale, médecins)\n🏠 Logement (recherche, aides)\n📋 Administratif (cartes, permis)\n💼 Emploi et formation\n🚗 Transport\n💰 Finances\n\n${context ? `\n🎯 **Votre profil :** ${context}` : ''}\n\nN'hésitez pas à me poser une question plus précise !`;
 } 
+
+// Fonction pour déterminer la catégorie selon le message
+function detectCategory(message: string): string {
+  const lowerMessage = message.toLowerCase();
+  
+  if (lowerMessage.includes('carte vitale') || lowerMessage.includes('sécurité sociale') || 
+      lowerMessage.includes('santé') || lowerMessage.includes('médecin') || 
+      lowerMessage.includes('hôpital') || lowerMessage.includes('assurance maladie') ||
+      lowerMessage.includes('cpam') || lowerMessage.includes('remboursement')) {
+    return 'sante';
+  }
+  
+  if (lowerMessage.includes('logement') || lowerMessage.includes('appartement') || 
+      lowerMessage.includes('maison') || lowerMessage.includes('apl') || 
+      lowerMessage.includes('caf') || lowerMessage.includes('logement social') ||
+      lowerMessage.includes('bail') || lowerMessage.includes('loyer')) {
+    return 'logement';
+  }
+  
+  if (lowerMessage.includes('emploi') || lowerMessage.includes('travail') || 
+      lowerMessage.includes('chômage') || lowerMessage.includes('pole emploi') ||
+      lowerMessage.includes('contrat') || lowerMessage.includes('salaire') ||
+      lowerMessage.includes('urssaf') || lowerMessage.includes('cotisations')) {
+    return 'emploi';
+  }
+  
+  if (lowerMessage.includes('formation') || lowerMessage.includes('études') || 
+      lowerMessage.includes('université') || lowerMessage.includes('école') ||
+      lowerMessage.includes('diplôme') || lowerMessage.includes('apprentissage')) {
+    return 'formation';
+  }
+  
+  if (lowerMessage.includes('papiers') || lowerMessage.includes('carte de séjour') || 
+      lowerMessage.includes('titre de séjour') || lowerMessage.includes('visa') ||
+      lowerMessage.includes('préfecture') || lowerMessage.includes('naturalisation')) {
+    return 'administratif';
+  }
+  
+  if (lowerMessage.includes('transport') || lowerMessage.includes('bus') || 
+      lowerMessage.includes('métro') || lowerMessage.includes('train') ||
+      lowerMessage.includes('permis') || lowerMessage.includes('voiture')) {
+    return 'transport';
+  }
+  
+  if (lowerMessage.includes('argent') || lowerMessage.includes('aides') || 
+      lowerMessage.includes('allocations') || lowerMessage.includes('rsa') ||
+      lowerMessage.includes('prestations') || lowerMessage.includes('finances')) {
+    return 'finances';
+  }
+  
+  return 'general';
+}
+
+// Configuration des sites par catégorie (sans dérogation)
+const CATEGORY_SITES = {
+  sante: {
+    name: 'Santé',
+    searchQuery: (message: string) => `"${message}" ameli.fr`,
+    sites: ['ameli.fr'],
+    color: 'bg-red-500',
+    textColor: 'text-red-600'
+  },
+  logement: {
+    name: 'Logement',
+    searchQuery: (message: string) => `"${message}" service-public.fr logement`,
+    sites: ['service-public.fr', 'caf.fr'],
+    color: 'bg-blue-500',
+    textColor: 'text-blue-600'
+  },
+  emploi: {
+    name: 'Emploi',
+    searchQuery: (message: string) => `"${message}" pole-emploi.fr`,
+    sites: ['pole-emploi.fr', 'service-public.fr'],
+    color: 'bg-green-500',
+    textColor: 'text-green-600'
+  },
+  formation: {
+    name: 'Formation',
+    searchQuery: (message: string) => `"${message}" service-public.fr formation`,
+    sites: ['service-public.fr', 'education.gouv.fr'],
+    color: 'bg-purple-500',
+    textColor: 'text-purple-600'
+  },
+  administratif: {
+    name: 'Administratif',
+    searchQuery: (message: string) => `"${message}" service-public.fr`,
+    sites: ['service-public.fr', 'gouvernement.fr'],
+    color: 'bg-gray-500',
+    textColor: 'text-gray-600'
+  },
+  transport: {
+    name: 'Transport',
+    searchQuery: (message: string) => `"${message}" service-public.fr transport`,
+    sites: ['service-public.fr', 'immatriculation.ants.gouv.fr'],
+    color: 'bg-yellow-500',
+    textColor: 'text-yellow-600'
+  },
+  finances: {
+    name: 'Finances',
+    searchQuery: (message: string) => `"${message}" service-public.fr aides`,
+    sites: ['service-public.fr', 'caf.fr'],
+    color: 'bg-indigo-500',
+    textColor: 'text-indigo-600'
+  },
+  general: {
+    name: 'Général',
+    searchQuery: (message: string) => `"${message}" service-public.fr`,
+    sites: ['service-public.fr', 'gouvernement.fr'],
+    color: 'bg-gray-500',
+    textColor: 'text-gray-600'
+  }
+}; 
