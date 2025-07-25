@@ -27,14 +27,12 @@ export default function CategoryQualificationPage({
   const [currentStep, setCurrentStep] = useState(0)
   const [userAnswers, setUserAnswers] = useState<string[]>([])
   const [showInitialMessage, setShowInitialMessage] = useState(true)
-  const [inputValue, setInputValue] = useState("")
+  const [inputValue, setInputValue] = useState<string>("")
   const [skipQualification, setSkipQualification] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  
-  // Hook du contexte chat
+
   const { state, setUserInfo } = useChat()
-  
-  // Initialiser le contexte chat
+
   useEffect(() => {
     const numero = localStorage.getItem("uid") || localStorage.getItem("numero") || `guest_${Date.now()}`
     setUserInfo(numero, 'accompagne')
@@ -48,10 +46,8 @@ export default function CategoryQualificationPage({
     scrollToBottom()
   }, [currentStep, userAnswers, showInitialMessage])
 
-  // Variables pour l'indicateur de progression
-  const showChatMessages = state.currentMessages.length > 0;
-  // Ne montrer l'indicateur fixe que s'il n'y a pas de messages de chat visibles
-  const showProcessingIndicator = state.processingState.currentStep !== 'idle' && !showChatMessages;
+  const showChatMessages = state.currentMessages.length > 0
+  const showProcessingIndicator = state.processingState.currentStep !== 'idle' && !showChatMessages
 
   const getQualificationSteps = (categoryName: string, isUserConnected: boolean): QualificationStep[] => {
     const commonSteps = [
@@ -132,7 +128,6 @@ export default function CategoryQualificationPage({
           answers: [
             { text: "Oui", emoji: "👶", value: "yes" },
             { text: "Non", emoji: "🚫", value: "no" },
-
           ],
         },
         {
@@ -345,17 +340,12 @@ export default function CategoryQualificationPage({
     }
 
     let steps = [...commonSteps]
-
-    // Ajouter les questions générales du compte seulement si l'utilisateur n'est pas connecté
     if (!isUserConnected) {
       steps = [...steps, ...accountQuestions.common.filter(step => !step.condition || step.condition(userAnswers))]
     }
-
-    // Ajouter les questions spécifiques au thème
     if (specificQuestions[categoryName as keyof typeof specificQuestions]) {
       steps = [...steps, ...specificQuestions[categoryName as keyof typeof specificQuestions]]
     }
-
     return steps
   }
 
@@ -382,6 +372,7 @@ export default function CategoryQualificationPage({
   const handleInputAnswer = (answer: string) => {
     const newAnswers = [...userAnswers, answer]
     setUserAnswers(newAnswers)
+    setInputValue("")
     if (currentStep < qualificationSteps.length - 1) {
       setCurrentStep(currentStep + 1)
     } else {
@@ -405,7 +396,6 @@ export default function CategoryQualificationPage({
 
   const renderMessages = () => {
     const messages = []
-
     if (showInitialMessage) {
       messages.push(
         <div key="initial" className="mb-8">
@@ -417,7 +407,6 @@ export default function CategoryQualificationPage({
               <Play className="w-4 h-4 text-[#414143] fill-current" />
             </Button>
           </div>
-          {/* Suppression du bouton skip */}
           <div className="flex justify-center mt-4">
             <Button
               onClick={handleInitialAccept}
@@ -435,7 +424,6 @@ export default function CategoryQualificationPage({
       for (let i = 0; i <= Math.min(currentStep, userAnswers.length - 1); i++) {
         const step = qualificationSteps[i]
         const userAnswer = userAnswers[i]
-
         messages.push(
           <div key={`question-${i}`} className="mb-4">
             <div className="bg-[#f4f4f4] p-4 rounded-2xl rounded-tl-md relative max-w-[90%]">
@@ -446,7 +434,6 @@ export default function CategoryQualificationPage({
             </div>
           </div>,
         )
-
         if (userAnswer) {
           if (step.type === "input") {
             messages.push(
@@ -486,6 +473,7 @@ export default function CategoryQualificationPage({
               <div className="flex justify-center mt-4">
                 <input
                   type="text"
+                  value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   className="bg-[#919191] hover:bg-gray-600 text-white px-6 py-2 rounded-full flex items-center gap-2"
                 />
@@ -564,29 +552,22 @@ export default function CategoryQualificationPage({
       </header>
       <div className="flex-1 flex justify-center overflow-hidden">
         <div className="w-full max-w-2xl p-6 flex flex-col">
-          {/* Si on a passé la qualification, afficher SEULEMENT le chat */}
           {skipQualification ? (
             <div className="h-full">
               <SimpleChatDisplay />
             </div>
           ) : (
             <>
-              {/* Header Assistant - seulement en mode qualification */}
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-sm">😊</div>
                 <span className="text-base font-medium text-[#414143]">Assistant Triptik</span>
               </div>
-              
               <div className="flex-1 overflow-y-auto">
                 <div className="space-y-4">
-                  {/* Messages de qualification */}
                   {renderMessages()}
-                  
-                  {/* Messages de chat intégrés directement */}
                   {state.currentMessages.length > 0 && (
                     <SimpleChatDisplay />
                   )}
-                  
                   <div ref={messagesEndRef} />
                 </div>
               </div>
@@ -594,8 +575,6 @@ export default function CategoryQualificationPage({
           )}
         </div>
       </div>
-
-      {/* Indicateur de progression */}
       {showProcessingIndicator && (
         <div className="fixed top-20 left-0 right-0 z-40 bg-white border-t border-gray-200">
           <div className="max-w-2xl mx-auto p-4">
@@ -608,7 +587,7 @@ export default function CategoryQualificationPage({
           </div>
         </div>
       )}
-      <ChatInput 
+      <ChatInput
         theme={category}
         placeholder={skipQualification ? `Posez votre question sur ${category}...` : "Répondez à la question ou posez votre propre question..."}
         onSendMessage={(message: string) => {
@@ -616,10 +595,10 @@ export default function CategoryQualificationPage({
             if (showInitialMessage) {
               if (message.toLowerCase().includes("d'accord")) {
                 handleInitialAccept()
-                return true // Géré, ne pas envoyer
+                return true
               } else if (message.trim()) {
                 setSkipQualification(true)
-                return false // Envoyer le message au chat
+                return false
               }
             } else if (currentStep < qualificationSteps.length) {
               const current = qualificationSteps[currentStep]
@@ -627,7 +606,7 @@ export default function CategoryQualificationPage({
                 handleInputAnswer(message)
                 return true
               } else {
-                const matchingAnswer = current.answers?.find(a => 
+                const matchingAnswer = current.answers?.find(a =>
                   message.toLowerCase().includes(a.text.toLowerCase()) ||
                   message.toLowerCase().includes(a.value.toLowerCase())
                 )
@@ -642,7 +621,7 @@ export default function CategoryQualificationPage({
             }
           }
           return false
-        }} 
+        }}
       />
     </div>
   )

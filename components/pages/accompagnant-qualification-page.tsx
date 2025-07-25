@@ -1,5 +1,4 @@
 "use client"
-
 import { Menu, MoreVertical, Play } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useRef, useEffect } from "react"
@@ -16,6 +15,7 @@ interface QualificationStep {
   question: string
   answers?: { text: string; emoji: string; value: string }[]
   type?: "input"
+  condition?: (answers: string[]) => boolean
 }
 
 export default function AccompagnantQualificationPage({ category, onBack }: AccompagnantQualificationPageProps) {
@@ -25,20 +25,16 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
   const [inputValue, setInputValue] = useState("")
   const [skipQualification, setSkipQualification] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  
-  // Hook du contexte chat
+
   const { state, setUserInfo } = useChat()
-  
-  // Initialiser le contexte chat
+
   useEffect(() => {
     const numero = localStorage.getItem("uid") || localStorage.getItem("numero") || `accompagnant_${Date.now()}`
     setUserInfo(numero, 'accompagnant')
   }, [setUserInfo])
 
-  // Variables pour l'indicateur de progression
-  const showChatMessages = state.currentMessages.length > 0;
-  // Ne montrer l'indicateur fixe que s'il n'y a pas de messages de chat visibles
-  const showProcessingIndicator = state.processingState.currentStep !== 'idle' && !showChatMessages;
+  const showChatMessages = state.currentMessages.length > 0
+  const showProcessingIndicator = state.processingState.currentStep !== 'idle' && !showChatMessages
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -61,7 +57,7 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
           { text: "Carte de séjour", emoji: "💳", value: "carte_sejour" },
           { text: "Titre de séjour réfugié", emoji: "🆔", value: "titre_sejour" },
           { text: "Passeport", emoji: "📕", value: "passeport" },
-          { text: "Récépissé décision favorable", emoji: "✅", value: "recepisse" },
+          { text: "Récépissé de décision favorable", emoji: "✅", value: "recepisse" },
           { text: "Aucun", emoji: "❌", value: "aucun" },
         ],
       },
@@ -112,15 +108,9 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
         ],
       },
       {
-        question: "La personne a-t-elle des enfants ?",
-        answers: [
-          { text: "Oui", emoji: "👶", value: "yes" },
-          { text: "Non", emoji: "🚫", value: "no" },
-        ],
-      },
-      {
         question: "Combien d'enfants a-t-elle ?",
-        type: "input"
+        type: "input",
+        condition: (answers: string[]) => answers.includes("yes"),
       },
     ]
 
@@ -174,7 +164,6 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
           ],
         },
       ],
-      // Tu peux ajouter ici les autres catégories : Logement, Droits, etc.
     }
 
     return [...commonSteps, ...(specificSteps[categoryName] || [])]
@@ -185,8 +174,13 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
   const handleInitialAccept = () => setShowInitialMessage(false)
 
   const handleAnswer = (answer: string) => {
-    setUserAnswers([...userAnswers, answer])
-    setCurrentStep((prev) => prev + 1)
+    const newAnswers = [...userAnswers, answer]
+    setUserAnswers(newAnswers)
+    if (currentStep < qualificationSteps.length - 1) {
+      setCurrentStep((prev) => prev + 1)
+    } else {
+      setCurrentStep((prev) => prev + 1)
+    }
   }
 
   const handleInputAnswer = () => {
@@ -197,12 +191,10 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
 
   const renderMessages = () => {
     const messages = []
-
     if (showInitialMessage) {
       messages.push(
         <div key="intro" className="mb-8">
           <div className="bg-[#f4f4f4] p-4 rounded-2xl rounded-tl-md max-w-[90%] mx-auto">
-
             <p>Vous avez choisi : {category}. Nous allons poser quelques questions sur la personne accompagnée.</p>
           </div>
           <div className="flex justify-center mt-4">
@@ -213,11 +205,10 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
         </div>
       )
     } else {
-      for (let i = 0; i < currentStep; i++) {
+      for (let i = 0; i <= Math.min(currentStep, userAnswers.length - 1); i++) {
         const step = qualificationSteps[i]
         const answer = userAnswers[i]
         const answerLabel = step.answers?.find(a => a.value === answer)
-
         messages.push(
           <div key={`q-${i}`} className="mb-4">
             <div className="bg-[#f4f4f4] p-4 rounded-2xl rounded-tl-md max-w-[90%]">
@@ -232,7 +223,7 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
         )
       }
 
-      if (currentStep < qualificationSteps.length) {
+      if (currentStep < qualificationSteps.length && currentStep >= userAnswers.length) {
         const current = qualificationSteps[currentStep]
         messages.push(
           <div key="current" className="mb-4">
@@ -270,7 +261,6 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
         )
       }
     }
-
     return messages
   }
 
@@ -280,38 +270,29 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
         <Button variant="ghost" size="icon" onClick={onBack}>
           <Menu className="w-6 h-6 text-gray-700" />
         </Button>
-        <img src="/images/emmaus-logo.png" className="h-20 w-auto" onClick={() => (window.location.href = "/")}/>
+        <img src="/images/emmaus-logo.png" className="h-20 w-auto" onClick={() => (window.location.href = "/")} alt="Emmaus Connect" />
         <Button variant="ghost" size="icon">
-
           <MoreVertical className="w-6 h-6 text-gray-700" />
         </Button>
       </header>
-
       <div className="flex-1 flex justify-center overflow-hidden">
         <div className="w-full max-w-2xl p-6 flex flex-col">
-          {/* Si on a passé la qualification, afficher SEULEMENT le chat */}
           {skipQualification ? (
             <div className="h-full">
               <SimpleChatDisplay />
             </div>
           ) : (
             <>
-              {/* Header Assistant - seulement en mode qualification */}
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-sm">😊</div>
                 <span className="text-base font-medium text-[#414143]">Assistant Triptik</span>
               </div>
-              
               <div className="flex-1 overflow-y-auto">
                 <div className="space-y-4">
-                  {/* Messages de qualification */}
                   {renderMessages()}
-                  
-                  {/* Messages de chat intégrés directement */}
                   {state.currentMessages.length > 0 && (
                     <SimpleChatDisplay />
                   )}
-                  
                   <div ref={messagesEndRef} />
                 </div>
               </div>
@@ -319,8 +300,6 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
           )}
         </div>
       </div>
-
-      {/* Indicateur de progression */}
       {showProcessingIndicator && (
         <div className="fixed top-20 left-0 right-0 z-40 bg-white border-t border-gray-200">
           <div className="max-w-2xl mx-auto p-4">
@@ -333,8 +312,7 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
           </div>
         </div>
       )}
-
-      <ChatInput 
+      <ChatInput
         theme={category}
         placeholder={skipQualification ? `Posez votre question sur ${category}...` : "Répondez à la question ou posez votre propre question..."}
         onSendMessage={(message: string) => {
@@ -342,10 +320,10 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
             if (showInitialMessage) {
               if (message.toLowerCase().includes("d'accord")) {
                 handleInitialAccept()
-                return true // Géré, ne pas envoyer
+                return true
               } else if (message.trim()) {
                 setSkipQualification(true)
-                return false // Envoyer le message au chat
+                return false
               }
             } else if (currentStep < qualificationSteps.length) {
               const current = qualificationSteps[currentStep]
@@ -354,7 +332,7 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
                 handleInputAnswer()
                 return true
               } else {
-                const matchingAnswer = current.answers?.find(a => 
+                const matchingAnswer = current.answers?.find(a =>
                   message.toLowerCase().includes(a.text.toLowerCase()) ||
                   message.toLowerCase().includes(a.value.toLowerCase())
                 )
@@ -369,7 +347,7 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
             }
           }
           return false
-        }} 
+        }}
       />
     </div>
   )

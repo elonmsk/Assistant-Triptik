@@ -40,7 +40,6 @@ export default function AccompagnePage({
   const [userData, setUserData] = useState<any | null>(null);
   const [showUserModal, setShowUserModal] = useState(false);
 
-  // Hook du contexte chat
   const { setUserInfo } = useChat();
 
   useEffect(() => {
@@ -52,11 +51,9 @@ export default function AccompagnePage({
         setNumeroUnique(numero);
       }
     } else {
-      // Ne pas automatiquement connecter l'utilisateur
       const numero = localStorage.getItem("uid") || localStorage.getItem("numero");
       if (numero) {
         setNumeroUnique(numero);
-        // Ne pas définir isLoggedIn à true ici
       } else {
         localStorage.removeItem("numero");
         setNumeroUnique(null);
@@ -64,8 +61,6 @@ export default function AccompagnePage({
     }
   }, [propIsLoggedIn, initialCategory]);
 
-
-  // Initialiser le contexte chat quand l'utilisateur est connecté ou en mode invité
   useEffect(() => {
     if (numeroUnique) {
       setUserInfo(numeroUnique, 'accompagne');
@@ -76,7 +71,6 @@ export default function AccompagnePage({
     setIsLoggedIn(true);
     setShowCreateAccount(false);
     setShowCreateAccountSimple(false);
-    // Récupérer le numéro depuis localStorage (uid ou numero)
     const numero = localStorage.getItem("uid") || localStorage.getItem("numero");
     if (numero) {
       setNumeroUnique(numero);
@@ -104,7 +98,6 @@ export default function AccompagnePage({
 
   const handleSendMessage = (message: string) => {
     console.log("Message envoyé:", message);
-    // Le traitement est maintenant géré par le contexte ChatContext
   };
 
   const handleSeConnecter = () => {
@@ -119,10 +112,9 @@ export default function AccompagnePage({
 
   const handleContinuerSansConnexion = () => {
     setShowPremiereConnexion(false);
-    // Créer un ID temporaire pour l'utilisateur invité
     const guestId = `guest_${Date.now()}`;
     setNumeroUnique(guestId);
-    setIsLoggedIn(false); // Rester en mode "invité"
+    setIsLoggedIn(false);
   };
 
   const handleBackFromAuth = () => {
@@ -137,28 +129,23 @@ export default function AccompagnePage({
     localStorage.setItem("selectedTheme", categoryName);
     setSelectedCategory(categoryName);
     setIsMenuOpen(false);
-    // Vérifiez si l'utilisateur est connecté
     if (!isLoggedIn) {
       setShowPremiereConnexion(true);
     }
   };
 
-  // Nouvelle fonction pour le bouton de connexion
   const handleConnexionButtonClick = () => {
     setShowPremiereConnexion(true);
   };
 
-  // Fonction de déconnexion
-const handleLogout = () => {
-  localStorage.removeItem("uid");
-  localStorage.removeItem("numero");
-  setIsLoggedIn(false);
-  setNumeroUnique(null);
-  setUserData(null);
-  // Rediriger ou actualiser la page si nécessaire
-  window.location.reload();
-};
-
+  const handleLogout = () => {
+    localStorage.removeItem("uid");
+    localStorage.removeItem("numero");
+    setIsLoggedIn(false);
+    setNumeroUnique(null);
+    setUserData(null);
+    window.location.reload();
+  };
 
   const renderHeader = () => (
     <header className="flex items-center justify-between py-3 px-6 border-b border-gray-200">
@@ -215,7 +202,6 @@ const handleLogout = () => {
   } else if (showLanguages) {
     content = <LanguagesPage onBack={() => setShowLanguages(false)} />;
   } else {
-    // Affichage des catégories
     const categories = [
       { name: "Santé", icon: "🏥" },
       { name: "Emploi", icon: "💼" },
@@ -243,9 +229,10 @@ const handleLogout = () => {
               : "Vous pouvez sélectionner une des thématiques ci-dessous ou poser directement une question"}
           </p>
         </div>
-        <div className="mb-6">
+        <div className="mb-12">
           <h2 className="text-xl font-normal text-[#000000] text-center mb-8">Choisissez une thématique</h2>
-          <div className="grid grid-cols-4 gap-4">
+
+          <div className="grid grid-cols-4 gap-4 mb-8">
             {categories.map((category, index) => (
               <Button
                 key={index}
@@ -279,17 +266,14 @@ const handleLogout = () => {
   const shouldShowHeaderAndChat = !showCreateAccount && !showPremiereConnexion && !showCreateAccountSimple && !selectedCategory;
   const { state } = useChat();
   const showChatMessages = shouldShowHeaderAndChat && (isLoggedIn || (numeroUnique && numeroUnique.startsWith('guest_'))) && state.currentMessages.length > 0;
-  // Ne montrer l'indicateur fixe que s'il n'y a pas de messages de chat visibles
   const showProcessingIndicator = shouldShowHeaderAndChat && state.processingState.currentStep !== 'idle' && !showChatMessages;
 
   return (
-    <div className="min-h-screen bg-[#ffffff] pb-24">
+    <div className="min-h-screen bg-[#ffffff]">
       {shouldShowHeaderAndChat && renderHeader()}
       {content}
-      {/* Zone d'affichage des messages */}
       {showChatMessages && (
         <div className="fixed top-20 left-0 right-0 bottom-24 bg-white z-30 border-t border-gray-200 flex flex-col">
-          {/* En-tête de la zone de chat */}
           <div className="max-w-2xl mx-auto p-4 border-b border-gray-100 w-full">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-sm">😊</div>
@@ -301,8 +285,6 @@ const handleLogout = () => {
           </div>
         </div>
       )}
-      
-      {/* Indicateur de progression */}
       {showProcessingIndicator && (
         <div className="fixed top-20 left-0 right-0 z-40 bg-white border-t border-gray-200">
           <div className="max-w-2xl mx-auto p-4">
@@ -315,7 +297,6 @@ const handleLogout = () => {
           </div>
         </div>
       )}
-      {/* Remplacer ChatInput par un bouton de connexion si l'utilisateur n'est pas connecté */}
       {shouldShowHeaderAndChat && !isLoggedIn && !numeroUnique && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
           <div className="max-w-2xl mx-auto">
@@ -328,14 +309,12 @@ const handleLogout = () => {
           </div>
         </div>
       )}
-      {/* Garder ChatInput si l'utilisateur est connecté */}
       {shouldShowHeaderAndChat && isLoggedIn && (
         <ChatInput
           theme={selectedCategory || undefined}
           onSendMessage={handleSendMessage}
         />
       )}
-      {/* ChatInput pour les invités */}
       {shouldShowHeaderAndChat && !isLoggedIn && numeroUnique && numeroUnique.startsWith('guest_') && (
         <ChatInput
           theme={selectedCategory || undefined}
