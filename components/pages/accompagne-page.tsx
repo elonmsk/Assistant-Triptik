@@ -16,6 +16,7 @@ import { Menu, User } from "lucide-react";
 import { useChat } from '@/contexts/ChatContext';
 import SimpleChatDisplay from '@/components/ui-custom/simple-chat-display';
 import ProcessingIndicator from '@/components/chat/ProcessingIndicator';
+import { VersionBadge } from "@/components/ui/version-badge";
 
 interface AccompagnePageProps {
   isLoggedIn?: boolean;
@@ -161,6 +162,7 @@ export default function AccompagnePage({
         />
       </div>
       <div className="flex items-center gap-3">
+        <VersionBadge variant="header" />
         {isLoggedIn && (
           <Button variant="ghost" size="icon" onClick={handleLogout}>
             Déconnexion

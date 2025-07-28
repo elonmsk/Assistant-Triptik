@@ -8,6 +8,7 @@ import { CommunityPage, SearchHistoryPage, LanguagesPage, AccompagnantQualificat
 import { useChat } from '@/contexts/ChatContext'
 import SimpleChatDisplay from '@/components/ui-custom/simple-chat-display'
 import ProcessingIndicator from '@/components/chat/ProcessingIndicator'
+import { VersionBadge } from "@/components/ui/version-badge"
 
 export default function AccompagnantPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -90,7 +91,9 @@ export default function AccompagnantPage() {
             onClick={() => (window.location.href = "/")}
           />
         </div>
-        <div className="w-10"></div> {/* Spacer for centering */}
+        <div className="flex items-center gap-3">
+          <VersionBadge variant="header" />
+        </div>
       </header>
 
       {/* Main Content */}

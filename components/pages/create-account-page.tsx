@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import CreateAccountSimplePage from "./create-account-simple-page";
 import PremiereConnexion from "./premiere-connexion";
+import { VersionBadge } from "@/components/ui/version-badge";
 
 interface CreateAccountPageProps {
   onComplete?: () => void;
@@ -152,6 +153,11 @@ export default function CreateAccountPage({ onComplete, onBack }: CreateAccountP
               Aucun système de récupération n'est prévu.
             </span>
           </p>
+        </div>
+        
+        {/* Version Footer */}
+        <div className="text-center mt-8">
+          <VersionBadge />
         </div>
       </div>
     </div>

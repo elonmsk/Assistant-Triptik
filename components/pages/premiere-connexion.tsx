@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import PremiereConnexion from "./accompagne-page";
 import CreateAccountPage from "./create-account-page";
 import CreateAccountSimplePage from "./create-account-simple-page";
+import { VersionBadge } from "@/components/ui/version-badge";
 
 interface AuthPageProps {
   selectedTheme?: string | null;
@@ -89,6 +90,11 @@ export default function AuthPage({
         >
           Continuer sans profil
         </Button>
+        
+        {/* Version Footer */}
+        <div className="mt-8">
+          <VersionBadge />
+        </div>
       </div>
     </div>
   );

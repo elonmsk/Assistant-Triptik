@@ -10,6 +10,7 @@ import { TypingIndicator } from './MessageList'
 import ChatHistoryPanel from './ChatHistoryPanel'
 import ChatInput from '@/components/ui-custom/chat-input'
 import ProcessingIndicator from './ProcessingIndicator'
+import { VersionBadge } from '@/components/ui/version-badge'
 
 interface ChatInterfaceProps {
   userNumero: string
@@ -82,14 +83,15 @@ export default function ChatInterface({
             </div>
           </div>
 
-          {/* Indicateur de statut */}
-          <div className="flex items-center gap-2">
+          {/* Indicateur de statut et version */}
+          <div className="flex items-center gap-3">
             {isSendingMessage && (
               <div className="flex items-center gap-2 text-sm text-blue-600">
                 <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
                 Assistant en train d'écrire...
               </div>
             )}
+            <VersionBadge variant="header" />
           </div>
         </div>
 
