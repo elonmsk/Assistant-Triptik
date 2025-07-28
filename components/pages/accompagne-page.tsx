@@ -1,4 +1,3 @@
-"use client";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import {
@@ -39,8 +38,7 @@ export default function AccompagnePage({
   const [numeroUnique, setNumeroUnique] = useState<string | null>(null);
   const [userData, setUserData] = useState<any | null>(null);
   const [showUserModal, setShowUserModal] = useState(false);
-
-  const { setUserInfo } = useChat();
+  const { setUserInfo, state } = useChat();
 
   useEffect(() => {
     if (propIsLoggedIn && initialCategory) {
@@ -231,7 +229,6 @@ export default function AccompagnePage({
         </div>
         <div className="mb-12">
           <h2 className="text-xl font-normal text-[#000000] text-center mb-8">Choisissez une thématique</h2>
-
           <div className="grid grid-cols-4 gap-4 mb-8">
             {categories.map((category, index) => (
               <Button
@@ -264,7 +261,6 @@ export default function AccompagnePage({
   }
 
   const shouldShowHeaderAndChat = !showCreateAccount && !showPremiereConnexion && !showCreateAccountSimple && !selectedCategory;
-  const { state } = useChat();
   const showChatMessages = shouldShowHeaderAndChat && (isLoggedIn || (numeroUnique && numeroUnique.startsWith('guest_'))) && state.currentMessages.length > 0;
   const showProcessingIndicator = shouldShowHeaderAndChat && state.processingState.currentStep !== 'idle' && !showChatMessages;
 
@@ -297,6 +293,7 @@ export default function AccompagnePage({
           </div>
         </div>
       )}
+      {/* Assurez-vous que cette condition est correcte pour afficher la barre "Poser une question" */}
       {shouldShowHeaderAndChat && !isLoggedIn && !numeroUnique && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
           <div className="max-w-2xl mx-auto">

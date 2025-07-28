@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import CreateAccountSimplePage from "./create-account-simple-page";
 import PremiereConnexion from "./premiere-connexion";
+import AccompagnePage from "./accompagne-page";
 
 interface CreateAccountPageProps {
   onComplete?: () => void;
@@ -15,12 +16,14 @@ export default function CreateAccountPage({ onComplete, onBack }: CreateAccountP
   const [showSimpleCreate, setShowSimpleCreate] = useState(false);
   const [showPremiereConnexion, setShowPremiereConnexion] = useState(false);
   const [showLogin, setShowLogin] = useState(true);
+  const [showAccompagnePage, setShowAccompagnePage] = useState(false);
   const [identifiant, setIdentifiant] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
-    // Réinitialisation de l'état ici si nécessaire
+    // Vous pouvez initialiser ou récupérer le thème ici si nécessaire
   }, []);
 
   const handleBack = () => {
@@ -36,6 +39,7 @@ export default function CreateAccountPage({ onComplete, onBack }: CreateAccountP
 
   const handleLogin = async () => {
     setErrorMessage("");
+    setSuccessMessage("");
     try {
       const res = await fetch("/api/login", {
         method: "POST",
@@ -50,16 +54,33 @@ export default function CreateAccountPage({ onComplete, onBack }: CreateAccountP
         return;
       }
       console.log("✅ Connexion réussie :", data);
+      setSuccessMessage("Connexion réussie !");
+
+      // Nettoyez localStorage avant de stocker le nouvel identifiant
+      localStorage.clear();
+
+      // Mettez à jour localStorage avec le nouvel identifiant
       if (data.display_name) {
         localStorage.setItem("numero", data.display_name);
-        console.log("👉 Numéro unique sauvegardé et affiché :", data.display_name);
+        console.log("👉 Numéro unique sauvegardé :", data.display_name);
       }
+
       if (onComplete) onComplete();
+
+      // Mettre à jour l'état pour afficher AccompagnePage
+      setShowAccompagnePage(true);
+
     } catch (err) {
       console.error("Erreur réseau :", err);
       setErrorMessage("Erreur réseau.");
     }
   };
+
+  if (showAccompagnePage) {
+    const storedNumero = localStorage.getItem("numero");
+    const storedTheme = localStorage.getItem("selectedTheme"); // Récupérez le thème choisi
+    return <AccompagnePage isLoggedIn={true} initialCategory={storedTheme} identifiant={storedNumero} />;
+  }
 
   if (showPremiereConnexion) {
     return (
@@ -136,6 +157,9 @@ export default function CreateAccountPage({ onComplete, onBack }: CreateAccountP
         </div>
         {errorMessage && (
           <div className="text-center text-red-500 font-medium mb-4">{errorMessage}</div>
+        )}
+        {successMessage && (
+          <div className="text-center text-green-500 font-medium mb-4">{successMessage}</div>
         )}
         <Button
           onClick={handleLogin}
