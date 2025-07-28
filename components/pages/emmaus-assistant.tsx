@@ -5,6 +5,7 @@ import { ChevronDown, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { AccompagnePage, AccompagnantPage } from "@/components/pages"
+import { VersionBadge } from "@/components/ui/version-badge"
 
 export default function Component() {
   const [currentPage, setCurrentPage] = useState<"home" | "accompagne" | "accompagnant">("home")
@@ -166,8 +167,11 @@ export default function Component() {
               <span className="text-[#6b7280] text-lg">L'assistant vous répond</span>
             </div>
           </div>
+        </div>
 
-
+        {/* Version Footer */}
+        <div className="text-center mt-12 pb-6">
+          <VersionBadge />
         </div>
       </main>
     </div>
