@@ -45,12 +45,12 @@ export default function SimpleChatDisplay({ className = "" }: SimpleChatDisplayP
       } else {
         // Message assistant - bulle grise alignée à gauche
         messages.push(
-                  <div key={`assistant-${i}`} className="mb-4 flex justify-start">
-          <div className="flex items-start gap-3 max-w-[90%]">
+          <div key={`assistant-${i}`} className="mb-4 flex justify-start">
+            <div className="flex items-start gap-3 max-w-[85%] min-w-[300px]">
               <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0">
                 <span className="text-sm">🤖</span>
               </div>
-              <div className="bg-gray-100 text-gray-800 p-3 rounded-2xl rounded-tl-md">
+              <div className="bg-gray-100 text-gray-800 p-3 rounded-2xl rounded-tl-md w-full">
                 {message.content === "L'assistant Triptik est en train d'écrire..." ? (
                   // Utiliser le ProcessingIndicator si on a un état de progression actif
                   state.processingState.currentStep !== 'idle' ? (
@@ -73,7 +73,7 @@ export default function SimpleChatDisplay({ className = "" }: SimpleChatDisplayP
                     </div>
                   )
                 ) : (
-                  <div className="prose prose-sm max-w-none">
+                  <div className="prose prose-sm max-w-none overflow-hidden">
                     <ReactMarkdown 
                       components={{
                         h1: ({node, ...props}) => <h1 className="text-xl font-bold my-2" {...props} />,
@@ -84,7 +84,9 @@ export default function SimpleChatDisplay({ className = "" }: SimpleChatDisplayP
                         ol: ({node, ...props}) => <ol className="list-decimal list-inside my-2" {...props} />,
                         li: ({node, ...props}) => <li className="text-sm" {...props} />,
                         a: ({node, ...props}) => <a className="text-blue-600 hover:underline" {...props} />,
-                        strong: ({node, ...props}) => <strong className="font-bold" {...props} />
+                        strong: ({node, ...props}) => <strong className="font-bold" {...props} />,
+                        pre: ({node, ...props}) => <pre className="bg-gray-200 p-2 rounded text-xs overflow-x-auto" {...props} />,
+                        code: ({node, ...props}) => <code className="bg-gray-200 px-1 py-0.5 rounded text-xs" {...props} />
                       }}
                     >
                       {message.content}

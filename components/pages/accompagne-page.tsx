@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import {
-  CreateAccountPage,
   MyProceduresPage,
   MyAppointmentsPage,
   LanguagesPage,
@@ -9,6 +8,7 @@ import {
 } from "@/components/pages";
 import AuthPage from "@/components/pages/premiere-connexion";
 import CreateAccountSimplePage from "@/components/pages/create-account-simple-page";
+import CreateAccountPage from "@/components/pages/create-account-page";
 import { AccompagneSideMenu, ChatInput } from "@/components/ui-custom";
 import { Button } from "@/components/ui/button";
 import { Menu, User } from "lucide-react";

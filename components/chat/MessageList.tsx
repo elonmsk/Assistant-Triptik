@@ -82,15 +82,15 @@ export default function MessageList({ messages, isLoading = false, className = "
           </Avatar>
 
           {/* Message */}
-          <div className={`flex flex-col max-w-[90%] ${
+          <div className={`flex flex-col max-w-[85%] min-w-[300px] ${
             message.role === 'user' ? 'items-end' : 'items-start'
           }`}>
-            <Card className={`p-3 ${
+            <Card className={`p-3 w-full ${
               message.role === 'user'
                 ? 'bg-blue-600 text-white border-blue-600'
                 : 'bg-white border-gray-200'
             }`}>
-              <p className="text-sm leading-relaxed whitespace-pre-wrap">
+              <p className="text-sm leading-relaxed whitespace-pre-wrap overflow-hidden">
                 {message.content}
               </p>
             </Card>
