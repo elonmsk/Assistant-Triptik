@@ -378,7 +378,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
               try {
                 const data = JSON.parse(line.slice(6))
                 
-                if (data.type === 'content') {
+                if (data.type === 'chunk') {
                   // Mettre à jour le message assistant avec le contenu streamé
                   assistantMessage = {
                     ...assistantMessage,
@@ -393,11 +393,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
                     progress: data.progress,
                     category: data.category
                   }})
-                } else if (data.type === 'end') {
+                } else if (data.type === 'done') {
                   // Mettre à jour l'ID de conversation si nécessaire
-      if (data.conversationId && !state.currentConversation) {
-        dispatch({ type: 'SET_CURRENT_CONVERSATION', payload: data.conversationId })
-        await loadConversations()
+                  if (data.conversationId && !state.currentConversation) {
+                    dispatch({ type: 'SET_CURRENT_CONVERSATION', payload: data.conversationId })
+                    await loadConversations()
                   }
                   
                   // Marquer comme terminé

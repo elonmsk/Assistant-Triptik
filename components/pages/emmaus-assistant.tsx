@@ -166,8 +166,8 @@ export default function Component() {
               </div>
               <span className="text-[#6b7280] text-lg">L'assistant vous répond</span>
             </div>
+            </div>
           </div>
-        </div>
 
         {/* Version Footer */}
         <div className="text-center mt-12 pb-6">

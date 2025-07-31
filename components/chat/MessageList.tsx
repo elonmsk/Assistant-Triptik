@@ -7,6 +7,40 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useChat, type Message } from '@/contexts/ChatContext'
 import ProcessingIndicator from './ProcessingIndicator'
 
+// Fonction pour formater le Markdown en HTML
+function formatMarkdown(text: string): string {
+  if (!text) return '';
+  
+  let html = text;
+  
+  // Titres
+  html = html.replace(/^# (.*$)/gim, '<h1 class="text-xl font-bold mb-2">$1</h1>');
+  html = html.replace(/^## (.*$)/gim, '<h2 class="text-lg font-semibold mb-2">$1</h2>');
+  html = html.replace(/^### (.*$)/gim, '<h3 class="text-base font-semibold mb-1">$1</h3>');
+  
+  // Gras
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  
+  // Italique
+  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  
+  // Liens
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">$1</a>');
+  
+  // Listes à puces
+  html = html.replace(/^• (.*$)/gim, '<li class="ml-4">$1</li>');
+  html = html.replace(/^– (.*$)/gim, '<li class="ml-8">$1</li>');
+  
+  // Paragraphes
+  html = html.replace(/\n\n/g, '</p><p class="mb-2">');
+  html = html.replace(/^(.+)$/gm, '<p class="mb-2">$1</p>');
+  
+  // Nettoyer les paragraphes vides
+  html = html.replace(/<p class="mb-2"><\/p>/g, '');
+  
+  return html;
+}
+
 interface MessageListProps {
   messages: Message[]
   isLoading?: boolean
@@ -90,9 +124,12 @@ export default function MessageList({ messages, isLoading = false, className = "
                 ? 'bg-blue-600 text-white border-blue-600'
                 : 'bg-white border-gray-200'
             }`}>
-              <p className="text-sm leading-relaxed whitespace-pre-wrap overflow-hidden">
-                {message.content}
-              </p>
+              <div 
+                className="text-sm leading-relaxed overflow-hidden prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ 
+                  __html: formatMarkdown(message.content) 
+                }}
+              />
             </Card>
             
             {/* Timestamp */}

@@ -45,7 +45,7 @@ export default function SimpleChatDisplay({ className = "" }: SimpleChatDisplayP
       } else {
         // Message assistant - bulle grise alignée à gauche
         messages.push(
-          <div key={`assistant-${i}`} className="mb-4 flex justify-start">
+                  <div key={`assistant-${i}`} className="mb-4 flex justify-start">
             <div className="flex items-start gap-3 max-w-[85%] min-w-[300px]">
               <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0">
                 <span className="text-sm">🤖</span>
