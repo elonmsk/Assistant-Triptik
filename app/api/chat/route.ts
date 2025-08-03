@@ -120,11 +120,17 @@ interface ChatRequest {
   userNumero: string
   userType: 'accompagne' | 'accompagnant'
   theme?: string
+  qualificationData?: {
+    category: string
+    answers: string[]
+    timestamp: number
+    userType?: 'accompagne' | 'accompagnant'
+  }
 }
 
 export async function POST(req: Request) {
   try {
-    const { message, conversationId, userNumero, userType, theme }: ChatRequest = await req.json()
+    const { message, conversationId, userNumero, userType, theme, qualificationData }: ChatRequest = await req.json()
 
     if (!message || !userNumero || !userType) {
       return NextResponse.json(
@@ -136,11 +142,23 @@ export async function POST(req: Request) {
     // TEMPORAIRE: Contourner Supabase pour tester OpenAI
     console.log('🚀 Appel OpenAI direct pour:', message);
 
-    // Préparer le contexte
+    // Préparer le contexte avec les données de qualification
     let systemContext = `${contextBehavior}\n\nTu es un assistant pour ${userType === 'accompagne' ? 'une personne accompagnée' : 'un accompagnant'} dans le domaine social.`
 
     if (theme) {
       systemContext += ` La conversation concerne le thème: ${theme}.`
+    }
+
+    // Ajouter les données de qualification au prompt si disponibles
+    if (qualificationData && qualificationData.answers && qualificationData.answers.length > 0) {
+      const qualificationProfile = formatQualificationForPrompt(qualificationData, theme || 'Général')
+      systemContext += qualificationProfile
+      
+      systemContext += `\n\n💡 INSTRUCTIONS SPÉCIALES:\n`
+      systemContext += `- Adapte tes réponses en fonction du profil de l'utilisateur ci-dessus\n`
+      systemContext += `- Prends en compte leur niveau de français, leur situation administrative, et leurs besoins spécifiques\n`
+      systemContext += `- Propose des solutions adaptées à leur contexte personnel\n`
+      systemContext += `- Utilise un langage approprié à leur niveau de compréhension\n`
     }
 
     // Appeler OpenAI directement
@@ -650,4 +668,52 @@ function detectCategory(message: string): string {
   }
   
   return 'général';
+} 
+
+// Fonction pour formater les données de qualification pour le prompt
+function formatQualificationForPrompt(qualificationData: any, category: string): string {
+  if (!qualificationData || !qualificationData.answers.length) {
+    return ''
+  }
+
+  const answers = qualificationData.answers
+  const userType = qualificationData.userType || 'accompagne'
+  
+  let profile = `\n\n📋 PROFIL DE L'UTILISATEUR (${userType === 'accompagne' ? 'Personne accompagnée' : 'Accompagnant'} - ${category}):\n`
+  
+  // Questions communes
+  const commonQuestions = [
+    "Démarches antérieures",
+    "Documents possédés", 
+    "Genre",
+    "Âge",
+    "Niveau de français",
+    "Langue courante",
+    "Ville de domiciliation",
+    "Département de domiciliation",
+    "Situation de handicap",
+    "Enfants"
+  ]
+
+  // Questions spécifiques par catégorie
+  const specificQuestions: { [key: string]: string[] } = {
+    'Santé': ['Couverture sociale'],
+    'Emploi': ['Résidence en France', 'Niveau scolaire', 'Inscription France Travail', 'Expérience professionnelle', 'CV à jour'],
+    'Logement': ['Nombre de personnes', 'Composition du foyer', 'Logement actuel', 'Demande logement social', 'Connaissance des aides'],
+    'Droits': ['Résidence en France', 'Nationalité'],
+    'Éducation': ['Niveau scolaire', 'Carte INE', 'Nationalité'],
+    'Apprentissage Français': ['Financement formation'],
+    'Formation Pro': ['Financement', 'Dates demandées', 'Durée engagement', 'Disponibilité', 'Jours présence'],
+    'Démarches': ['Nationalité']
+  }
+
+  const allQuestions = [...commonQuestions, ...(specificQuestions[category] || [])]
+  
+  answers.forEach((answer: string, index: number) => {
+    if (index < allQuestions.length) {
+      profile += `• ${allQuestions[index]}: ${answer}\n`
+    }
+  })
+
+  return profile
 } 

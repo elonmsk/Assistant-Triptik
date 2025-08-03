@@ -176,6 +176,16 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
   const handleAnswer = (answer: string) => {
     const newAnswers = [...userAnswers, answer]
     setUserAnswers(newAnswers)
+    
+    // Sauvegarder les réponses de qualification dans localStorage
+    const qualificationData = {
+      category,
+      answers: newAnswers,
+      timestamp: Date.now(),
+      userType: 'accompagnant'
+    }
+    localStorage.setItem(`qualification_${category}_accompagnant`, JSON.stringify(qualificationData))
+    
     if (currentStep < qualificationSteps.length - 1) {
       setCurrentStep((prev) => prev + 1)
     } else {
@@ -185,6 +195,18 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
 
   const handleInputAnswer = () => {
     if (!inputValue.trim()) return
+    const newAnswers = [...userAnswers, inputValue.trim()]
+    setUserAnswers(newAnswers)
+    
+    // Sauvegarder les réponses de qualification dans localStorage
+    const qualificationData = {
+      category,
+      answers: newAnswers,
+      timestamp: Date.now(),
+      userType: 'accompagnant'
+    }
+    localStorage.setItem(`qualification_${category}_accompagnant`, JSON.stringify(qualificationData))
+    
     handleAnswer(inputValue.trim())
     setInputValue("")
   }

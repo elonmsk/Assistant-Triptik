@@ -120,11 +120,17 @@ interface ChatRequest {
   userNumero: string
   userType: 'accompagne' | 'accompagnant'
   theme?: string
+  qualificationData?: {
+    category: string
+    answers: string[]
+    timestamp: number
+    userType?: 'accompagne' | 'accompagnant'
+  }
 }
 
 export async function POST(req: Request) {
   try {
-    const { message, conversationId, userNumero, userType, theme }: ChatRequest = await req.json()
+    const { message, conversationId, userNumero, userType, theme, qualificationData }: ChatRequest = await req.json()
 
     if (!message || !userNumero || !userType) {
       return NextResponse.json(
@@ -172,11 +178,106 @@ export async function POST(req: Request) {
           // TEMPORAIRE: Contourner Supabase pour tester OpenAI
           console.log('🚀 Appel OpenAI streaming pour:', message);
 
-          // Préparer le contexte
+          // Préparer le contexte avec les données de qualification
           let systemContext = `${contextBehavior}\n\nTu es un assistant pour ${userType === 'accompagne' ? 'une personne accompagnée' : 'un accompagnant'} dans le domaine social.`
 
           if (theme) {
             systemContext += ` La conversation concerne le thème: ${theme}.`
+          }
+
+          // Ajouter les données de qualification au prompt si disponibles
+          if (qualificationData && qualificationData.answers && qualificationData.answers.length > 0) {
+            console.log('🎯 Données de qualification reçues:', qualificationData)
+            const qualificationProfile = formatQualificationForPrompt(qualificationData, theme || 'Général')
+            console.log('📋 Profil formaté:', qualificationProfile)
+            systemContext += qualificationProfile
+            
+            systemContext += `\n\n🎯 INSTRUCTIONS DE PERSONNALISATION OBLIGATOIRES:\n`
+            systemContext += `Tu DOIS absolument adapter ta réponse en fonction du profil ci-dessus:\n\n`
+            
+            // Instructions spécifiques selon les réponses
+            const answers = qualificationData.answers
+            console.log('📝 Réponses de qualification:', answers)
+            
+            // Niveau de français
+            if (answers[4]) { // Niveau de français (index 4)
+              const frenchLevel = answers[4]
+              console.log('🇫🇷 Niveau de français détecté:', frenchLevel)
+              if (frenchLevel === 'a1' || frenchLevel === 'a2') {
+                systemContext += `• Langage: Utilise un français SIMPLE et CLAIR. Évite les mots complexes. Explique chaque étape en détail.\n`
+              } else if (frenchLevel === 'b1') {
+                systemContext += `• Langage: Utilise un français INTERMÉDIAIRE. Tu peux utiliser des termes techniques mais explique-les.\n`
+              } else {
+                systemContext += `• Langage: Tu peux utiliser un français AVANCÉ avec des termes techniques.\n`
+              }
+            }
+            
+            // Documents possédés
+            if (answers[1]) { // Documents (index 1)
+              const documents = answers[1]
+              console.log('📄 Documents détectés:', documents)
+              if (documents === 'aucun') {
+                systemContext += `• Situation: La personne n'a AUCUN document officiel. Propose des solutions pour obtenir des papiers d'abord.\n`
+              } else if (documents === 'ada' || documents === 'api') {
+                systemContext += `• Situation: La personne a une attestation de demande d'asile. Ses droits sont LIMITÉS mais elle peut accéder à certains services.\n`
+              } else if (documents === 'carte_sejour' || documents === 'titre_sejour') {
+                systemContext += `• Situation: La personne a un titre de séjour VALIDE. Elle a accès à la plupart des services français.\n`
+              }
+            }
+            
+            // Démarches antérieures
+            if (answers[0]) { // Démarches antérieures (index 0)
+              console.log('🔄 Expérience démarches:', answers[0])
+              if (answers[0] === 'yes') {
+                systemContext += `• Expérience: La personne a déjà fait des démarches. Tu peux être plus direct et technique.\n`
+              } else {
+                systemContext += `• Expérience: La personne n'a JAMAIS fait de démarches. Explique TOUT depuis le début, étape par étape.\n`
+              }
+            }
+            
+            // Couverture sociale (pour la santé)
+            if (theme === 'Santé' && answers[10]) { // Couverture sociale (index 10)
+              console.log('🏥 Couverture sociale:', answers[10])
+              if (answers[10] === 'yes') {
+                systemContext += `• Santé: La personne a une couverture sociale. Elle peut accéder aux remboursements et au tiers payant.\n`
+              } else {
+                systemContext += `• Santé: La personne N'A PAS de couverture sociale. Propose d'abord comment l'obtenir (AME, CMU, etc.).\n`
+              }
+            }
+            
+            // Âge
+            if (answers[3]) { // Âge (index 3)
+              const age = parseInt(answers[3])
+              console.log('👤 Âge détecté:', age)
+              if (age < 18) {
+                systemContext += `• Âge: La personne est MINEURE. Ses démarches doivent être faites par ses parents/tuteurs.\n`
+              } else if (age < 25) {
+                systemContext += `• Âge: La personne est jeune adulte. Mentionne les aides spécifiques aux jeunes.\n`
+              }
+            }
+            
+            // Enfants
+            if (answers[9] && answers[9] !== '0') { // Enfants (index 9)
+              console.log('👶 Enfants détectés:', answers[9])
+              systemContext += `• Famille: La personne a des enfants. Mentionne les aides familiales et les droits des enfants.\n`
+            }
+            
+            // Ville/Département
+            if (answers[6] && answers[7]) { // Ville et département (index 6 et 7)
+              console.log('📍 Localisation:', answers[6], answers[7])
+              systemContext += `• Localisation: La personne habite à ${answers[6]} (${answers[7]}). Propose des contacts et services LOCAUX.\n`
+            }
+            
+            systemContext += `\n💡 RÈGLES GÉNÉRALES:\n`
+            systemContext += `- Commence TOUJOURS par analyser la situation spécifique de la personne\n`
+            systemContext += `- Propose des solutions ADAPTÉES à son profil exact\n`
+            systemContext += `- Mentionne les obstacles potentiels selon sa situation\n`
+            systemContext += `- Donne des conseils PRATIQUES et CONCRETS\n`
+            systemContext += `- Si la personne n'a pas les bons documents, explique d'abord comment les obtenir\n`
+            
+            console.log('✅ Instructions de personnalisation ajoutées au prompt')
+          } else {
+            console.log('ℹ️ Aucune donnée de qualification disponible')
           }
 
           // Appeler OpenAI avec streaming
@@ -728,4 +829,134 @@ function detectCategory(message: string): string {
   }
   
   return 'général';
+}
+
+// Fonction pour formater les données de qualification pour le prompt
+function formatQualificationForPrompt(qualificationData: any, category: string): string {
+  if (!qualificationData || !qualificationData.answers.length) {
+    return ''
+  }
+
+  const answers = qualificationData.answers
+  const userType = qualificationData.userType || 'accompagne'
+  
+  let profile = `\n\n📋 PROFIL DÉTAILLÉ DE L'UTILISATEUR:\n`
+  profile += `Type: ${userType === 'accompagne' ? 'Personne accompagnée' : 'Accompagnant'}\n`
+  profile += `Catégorie: ${category}\n`
+  profile += `Date de qualification: ${new Date(qualificationData.timestamp).toLocaleDateString('fr-FR')}\n\n`
+  
+  // Questions communes avec labels clairs
+  const commonQuestions = [
+    "Démarches antérieures",
+    "Documents possédés", 
+    "Genre",
+    "Âge",
+    "Niveau de français",
+    "Langue courante",
+    "Ville de domiciliation",
+    "Département de domiciliation",
+    "Situation de handicap",
+    "Enfants"
+  ]
+
+  // Questions spécifiques par catégorie
+  const specificQuestions: { [key: string]: string[] } = {
+    'Santé': ['Couverture sociale'],
+    'Emploi': ['Résidence en France', 'Niveau scolaire', 'Inscription France Travail', 'Expérience professionnelle', 'CV à jour'],
+    'Logement': ['Nombre de personnes', 'Composition du foyer', 'Logement actuel', 'Demande logement social', 'Connaissance des aides'],
+    'Droits': ['Résidence en France', 'Nationalité'],
+    'Éducation': ['Niveau scolaire', 'Carte INE', 'Nationalité'],
+    'Apprentissage Français': ['Financement formation'],
+    'Formation Pro': ['Financement', 'Dates demandées', 'Durée engagement', 'Disponibilité', 'Jours présence'],
+    'Démarches': ['Nationalité']
+  }
+
+  const allQuestions = [...commonQuestions, ...(specificQuestions[category] || [])]
+  
+  // Formater les réponses avec des labels plus clairs
+  answers.forEach((answer: string, index: number) => {
+    if (index < allQuestions.length) {
+      let formattedAnswer = answer
+      
+      // Traduire les valeurs pour plus de clarté
+      if (answer === 'yes') formattedAnswer = 'Oui'
+      else if (answer === 'no') formattedAnswer = 'Non'
+      else if (answer === 'male') formattedAnswer = 'Homme'
+      else if (answer === 'female') formattedAnswer = 'Femme'
+      else if (answer === 'french') formattedAnswer = 'Français'
+      else if (answer === 'english') formattedAnswer = 'Anglais'
+      else if (answer === 'arabic') formattedAnswer = 'Arabe'
+      else if (answer === 'other') formattedAnswer = 'Autre'
+      else if (answer === 'a1') formattedAnswer = 'A1 (Débutant)'
+      else if (answer === 'a2') formattedAnswer = 'A2 (Élémentaire)'
+      else if (answer === 'b1') formattedAnswer = 'B1 (Intermédiaire)'
+      else if (answer === 'b2') formattedAnswer = 'B2 (Intermédiaire supérieur)'
+      else if (answer === 'c1') formattedAnswer = 'C1 (Avancé)'
+      else if (answer === 'c2') formattedAnswer = 'C2 (Maîtrise)'
+      else if (answer === 'ada') formattedAnswer = 'Attestation de demande d\'asile (ADA)'
+      else if (answer === 'api') formattedAnswer = 'Attestation prolongation d\'instruction (API)'
+      else if (answer === 'carte_sejour') formattedAnswer = 'Carte de séjour'
+      else if (answer === 'titre_sejour') formattedAnswer = 'Titre de séjour réfugié'
+      else if (answer === 'passeport') formattedAnswer = 'Passeport'
+      else if (answer === 'recepisse') formattedAnswer = 'Récépissé de décision favorable'
+      else if (answer === 'aucun') formattedAnswer = 'Aucun document officiel'
+      
+      profile += `• ${allQuestions[index]}: ${formattedAnswer}\n`
+    }
+  })
+
+  return profile
+}
+
+// Fonction pour appeler OpenAI
+async function callOpenAI({ systemContext, messages, userMessage }: {
+  systemContext: string
+  messages: Array<{ role: string; content: string }>
+  userMessage: string
+}) {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 90000);
+
+    console.log('🚀 Requête envoyée à OpenAI:', { userMessage, systemContext });
+
+    const response = await openai.responses.create({
+      model: "o4-mini",
+      reasoning: { effort: "medium" },
+      tools: [{ type: "web_search_preview" }],
+      input: [
+        {
+          role: "system",
+          content: systemContext
+        },
+        ...messages.map(msg => ({
+          role: msg.role as "user" | "assistant",
+          content: msg.content
+        })),
+        {
+          role: "user",
+          content: userMessage
+        }
+      ]
+    });
+
+    clearTimeout(timeoutId);
+
+    let content = response.output_text || "Désolé, je n'ai pas pu générer de réponse.";
+
+    // Formatage de la réponse comme avant
+    content = formatResponse(content);
+
+    return { success: true, content };
+
+  } catch (error) {
+    console.error("Erreur lors de l'appel à OpenAI:", error);
+    let fallbackContent = generateFallbackResponse(userMessage, systemContext);
+    if ((error as Error).name === 'AbortError') {
+      fallbackContent += "\n\n⚠️ *Timeout de l'API - réponse de base fournie.*";
+    }
+    
+    const formattedContent = formatResponse(fallbackContent);
+    return { success: true, content: formattedContent };
+  }
 }

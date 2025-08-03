@@ -81,6 +81,7 @@ type ChatAction =
   | { type: 'SET_PROCESSING_STATE'; payload: ProcessingState }
   | { type: 'UPDATE_PROCESSING_STEP'; payload: { step: ProcessingStep; message: string; progress: number; category?: string } }
   | { type: 'RESET_PROCESSING_STATE' }
+  | { type: 'UPDATE_MESSAGE_CONTENT'; payload: { messageId: string; content: string } }
 
 // État initial
 const initialState: ChatState = {
@@ -221,6 +222,14 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         processingState: initialState.processingState
       }
     
+    case 'UPDATE_MESSAGE_CONTENT':
+      return {
+        ...state,
+        currentMessages: state.currentMessages.map(msg =>
+          msg.id === action.payload.messageId ? { ...msg, content: action.payload.content } : msg
+        )
+      }
+    
     default:
       return state
   }
@@ -334,18 +343,49 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'ADD_MESSAGE', payload: userMessage })
 
     try {
+      // Récupérer les données de qualification si disponibles
+      let qualificationData = null
+      if (theme) {
+        try {
+          const key = state.userType === 'accompagnant' ? `qualification_${theme}_accompagnant` : `qualification_${theme}`
+          const data = localStorage.getItem(key)
+          console.log('🔍 Recherche qualification pour:', { theme, userType: state.userType, key, data })
+          if (data) {
+            const parsed = JSON.parse(data)
+            // Vérifier si les données ne sont pas trop anciennes (7 jours)
+            if (Date.now() - parsed.timestamp < 7 * 24 * 60 * 60 * 1000) {
+              qualificationData = parsed
+              console.log('✅ Qualification trouvée:', qualificationData)
+            } else {
+              console.log('⏰ Qualification expirée:', parsed)
+            }
+          } else {
+            console.log('❌ Aucune qualification trouvée pour:', key)
+          }
+        } catch (error) {
+          console.error('Erreur lors de la récupération des données de qualification:', error)
+        }
+      } else {
+        console.log('ℹ️ Pas de thème spécifié, pas de qualification recherchée')
+      }
+
+      const requestBody = {
+        message,
+        conversationId: state.currentConversation,
+        userNumero: state.userNumero,
+        userType: state.userType,
+        theme,
+        qualificationData
+      }
+      
+      console.log('📤 Envoi de la requête avec qualification:', requestBody)
+
       const response = await fetch('/api/chat/stream', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          message,
-          conversationId: state.currentConversation,
-          userNumero: state.userNumero,
-          userType: state.userType,
-          theme
-        })
+        body: JSON.stringify(requestBody)
       })
 
       if (!response.ok) {
@@ -368,23 +408,26 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       if (reader) {
         while (true) {
           const { done, value } = await reader.read()
+          
           if (done) break
-
+          
           const chunk = decoder.decode(value)
           const lines = chunk.split('\n')
-
+          
           for (const line of lines) {
             if (line.startsWith('data: ')) {
               try {
                 const data = JSON.parse(line.slice(6))
                 
                 if (data.type === 'chunk') {
-                  // Mettre à jour le message assistant avec le contenu streamé
-                  assistantMessage = {
-                    ...assistantMessage,
-                    content: data.content
-                  }
-                  dispatch({ type: 'UPDATE_MESSAGE', payload: assistantMessage })
+                  // Mettre à jour le contenu du message assistant
+                  dispatch({ 
+                    type: 'UPDATE_MESSAGE_CONTENT', 
+                    payload: { 
+                      messageId: assistantMessage.id, 
+                      content: data.content 
+                    } 
+                  })
                 } else if (data.type === 'processing_step') {
                   // Mettre à jour l'état de progression
                   dispatch({ type: 'UPDATE_PROCESSING_STEP', payload: {
@@ -417,14 +460,16 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-    } catch (error) {
-      dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Erreur inconnue' })
-    } finally {
-      dispatch({ type: 'SET_SENDING_MESSAGE', payload: false })
       // Réinitialiser l'état de progression après un délai
       setTimeout(() => {
         dispatch({ type: 'RESET_PROCESSING_STATE' })
       }, 2000)
+
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi du message:', error)
+      dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Erreur inconnue' })
+    } finally {
+      dispatch({ type: 'SET_SENDING_MESSAGE', payload: false })
     }
   }, [state.userNumero, state.userType, state.currentConversation, loadConversations])
 

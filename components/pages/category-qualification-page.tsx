@@ -362,6 +362,15 @@ export default function CategoryQualificationPage({
   const handleAnswer = (answer: string) => {
     const newAnswers = [...userAnswers, answer]
     setUserAnswers(newAnswers)
+    
+    // Sauvegarder les réponses de qualification dans localStorage
+    const qualificationData = {
+      category,
+      answers: newAnswers,
+      timestamp: Date.now()
+    }
+    localStorage.setItem(`qualification_${category}`, JSON.stringify(qualificationData))
+    
     if (currentStep < qualificationSteps.length - 1) {
       setCurrentStep(currentStep + 1)
     } else {
@@ -373,6 +382,15 @@ export default function CategoryQualificationPage({
     const newAnswers = [...userAnswers, answer]
     setUserAnswers(newAnswers)
     setInputValue("")
+    
+    // Sauvegarder les réponses de qualification dans localStorage
+    const qualificationData = {
+      category,
+      answers: newAnswers,
+      timestamp: Date.now()
+    }
+    localStorage.setItem(`qualification_${category}`, JSON.stringify(qualificationData))
+    
     if (currentStep < qualificationSteps.length - 1) {
       setCurrentStep(currentStep + 1)
     } else {
