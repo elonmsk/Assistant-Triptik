@@ -25,7 +25,7 @@ function formatMarkdown(text: string): string {
   html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
   
   // Liens
-  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">$1</a>');
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline cursor-pointer" onclick="event.preventDefault(); window.open(this.href, \'_blank\', \'noopener,noreferrer\'); return false;">$1</a>');
   
   // Listes à puces
   html = html.replace(/^• (.*$)/gim, '<li class="ml-4">$1</li>');

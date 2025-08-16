@@ -27,25 +27,37 @@ Le système de qualification dynamique permet d'intégrer automatiquement les r�
 Le prompt système inclut maintenant :
 
 ```
-📋 PROFIL DE L'UTILISATEUR (Personne accompagnée - Santé):
-• Démarches antérieures: oui
-• Documents possédés: carte_sejour
-• Genre: male
+📋 PROFIL DÉTAILLÉ DE L'UTILISATEUR:
+Type: Personne accompagnée
+Catégorie: Santé
+Date de qualification: 15/12/2024
+
+• Démarches antérieures: Oui
+• Documents possédés: Carte de séjour
+• Genre: Homme
 • Âge: 25
-• Niveau de français: b1
-• Langue courante: french
+• Niveau de français: B1 (Intermédiaire)
+• Langue courante: Français
 • Ville de domiciliation: Paris
 • Département de domiciliation: 75
-• Situation de handicap: non
+• Situation de handicap: Non
 • Enfants: 0
-• Couverture sociale: yes
+• Couverture sociale: Oui
 
-💡 INSTRUCTIONS SPÉCIALES:
-- Adapte tes réponses en fonction du profil de l'utilisateur ci-dessus
-- Prends en compte leur niveau de français, leur situation administrative, et leurs besoins spécifiques
-- Propose des solutions adaptées à leur contexte personnel
-- Utilise un langage approprié à leur niveau de compréhension
+🎯 INSTRUCTIONS DE PERSONNALISATION OBLIGATOIRES:
+• Langage: Utilise un français INTERMÉDIAIRE. Tu peux utiliser des termes techniques mais explique-les.
+• Situation: La personne a un titre de séjour VALIDE. Elle a accès à la plupart des services français.
+• Expérience: La personne a déjà fait des démarches. Tu peux être plus direct et technique.
+• Santé: La personne a une couverture sociale. Elle peut accéder aux remboursements et au tiers payant.
+• Localisation: La personne habite à Paris (75). Propose des contacts et services LOCAUX.
 ```
+
+### 5. **Site de référence Watizat.org**
+- **Site principal** : https://watizat.org/
+- **Particularité** : Informations essentielles dans des PDFs
+- **Utilisation** : Consulte TOUJOURS ce site en premier pour des informations de base
+- **Couverture** : Toutes les catégories (santé, logement, emploi, droits, etc.)
+- **Avantage** : Guides pratiques spécialement conçus pour les personnes en précarité
 
 ## 🚀 Utilisation
 
@@ -139,6 +151,11 @@ localStorage.setItem('qualification_Santé_accompagnant', JSON.stringify({
 - Expiration automatique des données
 - Support des deux types d'utilisateurs
 
+### 5. **Sources de référence enrichies**
+- **Watizat.org** : Site de référence avec guides PDF pour toutes les catégories
+- Sources officielles spécifiques à chaque domaine
+- Informations adaptées aux personnes en situation de précarité
+
 ## 🧪 Tests et débogage
 
 ### Page de test
@@ -165,7 +182,8 @@ Les APIs loggent les données de qualification :
 4. **Utilisateur envoie un message**
 5. **ChatContext récupère les données de qualification**
 6. **API intègre le profil dans le prompt système**
-7. **LLM génère une réponse personnalisée**
+7. **LLM consulte Watizat.org en premier**
+8. **LLM génère une réponse personnalisée**
 
 ## 🛠️ Maintenance
 
@@ -186,6 +204,22 @@ Le système permet de :
 - Améliorer les questions de qualification
 - Optimiser les réponses du LLM
 
+## 🌐 Sources de référence
+
+### Site principal : Watizat.org
+- **URL** : https://watizat.org/
+- **Type** : Guides PDF pour toutes les catégories
+- **Public** : Personnes en situation de précarité
+- **Particularité** : Informations essentielles dans des PDFs
+- **Utilisation** : Consultation obligatoire en premier
+
+### Sites par catégorie
+- **Santé** : Ameli.fr + Watizat (PDFs santé)
+- **Emploi** : France Travail + Watizat (PDFs emploi)
+- **Logement** : Action Logement + Watizat (PDFs logement)
+- **Droits** : Associations spécialisées + Watizat (PDFs droits)
+- **Éducation** : Sites éducatifs + Watizat (PDFs éducation)
+
 ---
 
-**Note** : Ce système améliore significativement la pertinence des réponses en fournissant un contexte riche et personnalisé au LLM, tout en respectant la vie privée des utilisateurs (données locales uniquement). 
+**Note** : Ce système améliore significativement la pertinence des réponses en fournissant un contexte riche et personnalisé au LLM, tout en respectant la vie privée des utilisateurs (données locales uniquement). L'ajout de Watizat.org comme source de référence garantit des informations adaptées aux personnes en situation de précarité. 

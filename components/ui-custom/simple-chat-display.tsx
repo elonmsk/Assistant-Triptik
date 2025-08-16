@@ -83,7 +83,18 @@ export default function SimpleChatDisplay({ className = "" }: SimpleChatDisplayP
                         ul: ({node, ...props}) => <ul className="list-disc list-inside my-2" {...props} />,
                         ol: ({node, ...props}) => <ol className="list-decimal list-inside my-2" {...props} />,
                         li: ({node, ...props}) => <li className="text-sm" {...props} />,
-                        a: ({node, ...props}) => <a className="text-blue-600 hover:underline" {...props} />,
+                        a: ({node, ...props}) => (
+                          <a 
+                            className="text-blue-600 hover:underline cursor-pointer" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              window.open(props.href, '_blank', 'noopener,noreferrer');
+                            }}
+                            {...props} 
+                          />
+                        ),
                         strong: ({node, ...props}) => <strong className="font-bold" {...props} />,
                         pre: ({node, ...props}) => <pre className="bg-gray-200 p-2 rounded text-xs overflow-x-auto" {...props} />,
                         code: ({node, ...props}) => <code className="bg-gray-200 px-1 py-0.5 rounded text-xs" {...props} />
