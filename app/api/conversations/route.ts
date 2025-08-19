@@ -20,6 +20,15 @@ export async function GET(req: Request) {
       )
     }
 
+    // Convertir userNumero en entier pour la base de données
+    const userNumeroInt = parseInt(userNumero, 10)
+    if (isNaN(userNumeroInt)) {
+      return NextResponse.json(
+        { error: "Numéro utilisateur invalide" },
+        { status: 400 }
+      )
+    }
+
     // Récupérer les conversations de l'utilisateur avec le dernier message
     const { data: conversations, error } = await supabase
       .from("conversations")
@@ -35,7 +44,7 @@ export async function GET(req: Request) {
           created_at
         )
       `)
-      .eq("user_numero", userNumero)
+      .eq("user_numero", userNumeroInt)
       .eq("user_type", userType)
       .order("updated_at", { ascending: false })
 
@@ -91,10 +100,19 @@ export async function POST(req: Request) {
       )
     }
 
+    // Convertir userNumero en entier pour la base de données
+    const userNumeroInt = parseInt(userNumero, 10)
+    if (isNaN(userNumeroInt)) {
+      return NextResponse.json(
+        { error: "Numéro utilisateur invalide" },
+        { status: 400 }
+      )
+    }
+
     const { data: newConversation, error } = await supabase
       .from("conversations")
       .insert({
-        user_numero: userNumero,
+        user_numero: userNumeroInt,
         user_type: userType,
         theme: theme || "Général",
         title: title || "Nouvelle conversation"
@@ -138,6 +156,15 @@ export async function DELETE(req: Request) {
       )
     }
 
+    // Convertir userNumero en entier pour la base de données
+    const userNumeroInt = parseInt(userNumero, 10)
+    if (isNaN(userNumeroInt)) {
+      return NextResponse.json(
+        { error: "Numéro utilisateur invalide" },
+        { status: 400 }
+      )
+    }
+
     // Vérifier que la conversation appartient à l'utilisateur
     const { data: conversation, error: checkError } = await supabase
       .from("conversations")
@@ -152,7 +179,7 @@ export async function DELETE(req: Request) {
       )
     }
 
-    if (conversation.user_numero !== userNumero) {
+    if (conversation.user_numero !== userNumeroInt) {
       return NextResponse.json(
         { error: "Non autorisé à supprimer cette conversation" },
         { status: 403 }

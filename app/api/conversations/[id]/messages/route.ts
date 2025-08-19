@@ -40,7 +40,16 @@ export async function GET(
       )
     }
 
-    if (conversation.user_numero !== userNumero) {
+    // Convertir userNumero en entier pour la comparaison
+    const userNumeroInt = parseInt(userNumero, 10)
+    if (isNaN(userNumeroInt)) {
+      return NextResponse.json(
+        { error: "Numéro utilisateur invalide" },
+        { status: 400 }
+      )
+    }
+
+    if (conversation.user_numero !== userNumeroInt) {
       return NextResponse.json(
         { error: "Non autorisé à accéder à cette conversation" },
         { status: 403 }
@@ -136,7 +145,16 @@ export async function POST(
       )
     }
 
-    if (conversation.user_numero !== userNumero) {
+    // Convertir userNumero en entier pour la comparaison
+    const userNumeroInt = parseInt(userNumero, 10)
+    if (isNaN(userNumeroInt)) {
+      return NextResponse.json(
+        { error: "Numéro utilisateur invalide" },
+        { status: 400 }
+      )
+    }
+
+    if (conversation.user_numero !== userNumeroInt) {
       return NextResponse.json(
         { error: "Non autorisé à ajouter un message à cette conversation" },
         { status: 403 }
@@ -215,7 +233,16 @@ export async function DELETE(
       )
     }
 
-    if (conversation.user_numero !== userNumero) {
+    // Convertir userNumero en entier pour la comparaison
+    const userNumeroInt = parseInt(userNumero, 10)
+    if (isNaN(userNumeroInt)) {
+      return NextResponse.json(
+        { error: "Numéro utilisateur invalide" },
+        { status: 400 }
+      )
+    }
+
+    if (conversation.user_numero !== userNumeroInt) {
       return NextResponse.json(
         { error: "Non autorisé à supprimer ce message" },
         { status: 403 }

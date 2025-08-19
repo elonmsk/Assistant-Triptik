@@ -23,7 +23,7 @@ export default function AccompagnantPage() {
   // Initialiser le contexte chat pour les accompagnants
   useEffect(() => {
     // Pour les accompagnants, on peut utiliser un ID générique ou récupérer depuis localStorage
-    const numero = localStorage.getItem("uid") || localStorage.getItem("numero") || `accompagnant_${Date.now()}`
+    const numero = localStorage.getItem("uid") || localStorage.getItem("numero") || (999000000 + Date.now()).toString()
     setUserInfo(numero, 'accompagnant')
   }, [setUserInfo])
 
