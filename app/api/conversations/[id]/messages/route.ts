@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { getUserNumeroForDB, isValidUserNumero } from "@/lib/userNumero"
 
 const supabase = createClient(
   "https://amikskoyjbqdvvohgssv.supabase.co",
@@ -40,11 +41,18 @@ export async function GET(
       )
     }
 
-    // Convertir userNumero en entier pour la comparaison
-    const userNumeroInt = parseInt(userNumero, 10)
-    if (isNaN(userNumeroInt)) {
+    // Valider et convertir userNumero (supporte les formats legacy et nouveaux)
+    if (!isValidUserNumero(userNumero)) {
       return NextResponse.json(
         { error: "Numéro utilisateur invalide" },
+        { status: 400 }
+      )
+    }
+
+    const userNumeroInt = getUserNumeroForDB(userNumero)
+    if (userNumeroInt === null) {
+      return NextResponse.json(
+        { error: "Erreur de conversion du numéro utilisateur" },
         { status: 400 }
       )
     }
@@ -145,11 +153,18 @@ export async function POST(
       )
     }
 
-    // Convertir userNumero en entier pour la comparaison
-    const userNumeroInt = parseInt(userNumero, 10)
-    if (isNaN(userNumeroInt)) {
+    // Valider et convertir userNumero (supporte les formats legacy et nouveaux)
+    if (!isValidUserNumero(userNumero)) {
       return NextResponse.json(
         { error: "Numéro utilisateur invalide" },
+        { status: 400 }
+      )
+    }
+
+    const userNumeroInt = getUserNumeroForDB(userNumero)
+    if (userNumeroInt === null) {
+      return NextResponse.json(
+        { error: "Erreur de conversion du numéro utilisateur" },
         { status: 400 }
       )
     }
@@ -233,11 +248,18 @@ export async function DELETE(
       )
     }
 
-    // Convertir userNumero en entier pour la comparaison
-    const userNumeroInt = parseInt(userNumero, 10)
-    if (isNaN(userNumeroInt)) {
+    // Valider et convertir userNumero (supporte les formats legacy et nouveaux)
+    if (!isValidUserNumero(userNumero)) {
       return NextResponse.json(
         { error: "Numéro utilisateur invalide" },
+        { status: 400 }
+      )
+    }
+
+    const userNumeroInt = getUserNumeroForDB(userNumero)
+    if (userNumeroInt === null) {
+      return NextResponse.json(
+        { error: "Erreur de conversion du numéro utilisateur" },
         { status: 400 }
       )
     }
