@@ -26,6 +26,7 @@ export default function AccompagnePage({
   isLoggedIn: propIsLoggedIn,
   initialCategory,
 }: AccompagnePageProps = {}) {
+  // États
   const [showCreateAccount, setShowCreateAccount] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showMyProcedures, setShowMyProcedures] = useState(false);
@@ -41,19 +42,17 @@ export default function AccompagnePage({
   const [showUserModal, setShowUserModal] = useState(false);
   const { setUserInfo, state } = useChat();
 
+  // Effets
   useEffect(() => {
     if (propIsLoggedIn && initialCategory) {
       setIsLoggedIn(true);
       setSelectedCategory(initialCategory);
       const numero = localStorage.getItem("uid") || localStorage.getItem("numero");
-      if (numero) {
-        setNumeroUnique(numero);
-      }
+      if (numero) setNumeroUnique(numero);
     } else {
       const numero = localStorage.getItem("uid") || localStorage.getItem("numero");
-      if (numero) {
-        setNumeroUnique(numero);
-      } else {
+      if (numero) setNumeroUnique(numero);
+      else {
         localStorage.removeItem("numero");
         setNumeroUnique(null);
       }
@@ -61,43 +60,34 @@ export default function AccompagnePage({
   }, [propIsLoggedIn, initialCategory]);
 
   useEffect(() => {
-    if (numeroUnique) {
-      setUserInfo(numeroUnique, 'accompagne');
-    }
+    if (numeroUnique) setUserInfo(numeroUnique, 'accompagne');
   }, [numeroUnique, setUserInfo]);
 
+  // Handlers
   const handleAccountCreationComplete = () => {
     setIsLoggedIn(true);
     setShowCreateAccount(false);
     setShowCreateAccountSimple(false);
     const numero = localStorage.getItem("uid") || localStorage.getItem("numero");
-    if (numero) {
-      setNumeroUnique(numero);
-    }
+    if (numero) setNumeroUnique(numero);
   };
 
   const handleLoadUserData = async () => {
     if (!numeroUnique) return;
     const numeroInt = parseInt(numeroUnique, 10);
-    console.log("👉 recherche numero =", numeroInt);
     const { data, error } = await supabase
       .from("info")
       .select("*")
       .eq("numero", numeroInt)
       .single();
-    if (error) {
-      console.error("Erreur Supabase", error);
-      alert(`Erreur Supabase: ${error.message}`);
-    } else {
-      console.log("📦 Données Supabase", data);
+    if (error) console.error("Erreur Supabase", error);
+    else {
       setUserData(data);
       setShowUserModal(true);
     }
   };
 
-  const handleSendMessage = (message: string) => {
-    console.log("Message envoyé:", message);
-  };
+  const handleSendMessage = (message: string) => console.log("Message envoyé:", message);
 
   const handleSeConnecter = () => {
     setShowPremiereConnexion(false);
@@ -128,14 +118,10 @@ export default function AccompagnePage({
     localStorage.setItem("selectedTheme", categoryName);
     setSelectedCategory(categoryName);
     setIsMenuOpen(false);
-    if (!isLoggedIn) {
-      setShowPremiereConnexion(true);
-    }
+    if (!isLoggedIn) setShowPremiereConnexion(true);
   };
 
-  const handleConnexionButtonClick = () => {
-    setShowPremiereConnexion(true);
-  };
+  const handleConnexionButtonClick = () => setShowPremiereConnexion(true);
 
   const handleLogout = () => {
     localStorage.removeItem("uid");
@@ -146,6 +132,7 @@ export default function AccompagnePage({
     window.location.reload();
   };
 
+  // Rendu du header
   const renderHeader = () => (
     <header className="flex items-center justify-between py-3 px-6 border-b border-gray-200">
       <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(true)}>
@@ -155,7 +142,7 @@ export default function AccompagnePage({
         <img
           src="/images/emmaus-logo.png"
           alt="Emmaus Connect"
-          className="h-20 w-auto cursor-pointer hover:opacity-80 transition-opacity"
+          className="h-16 w-auto cursor-pointer hover:opacity-80 transition-opacity"
           onClick={() => (window.location.href = "/")}
         />
       </div>
@@ -173,6 +160,7 @@ export default function AccompagnePage({
     </header>
   );
 
+  // Contenu principal
   let content;
   if (showCreateAccount) {
     content = <CreateAccountPage onComplete={handleAccountCreationComplete} />;
@@ -188,13 +176,21 @@ export default function AccompagnePage({
       />
     );
   } else if (showCreateAccountSimple) {
-    content = <CreateAccountSimplePage
-      onBack={() => setShowCreateAccountSimple(false)}
-      onLogin={() => setShowCreateAccount(true)}
-      onComplete={handleAccountCreationComplete}
-    />;
+    content = (
+      <CreateAccountSimplePage
+        onBack={() => setShowCreateAccountSimple(false)}
+        onLogin={() => setShowCreateAccount(true)}
+        onComplete={handleAccountCreationComplete}
+      />
+    );
   } else if (selectedCategory) {
-    content = <CategoryQualificationPage category={selectedCategory} onBack={() => setSelectedCategory(null)} isConnected={isLoggedIn} />;
+    content = (
+      <CategoryQualificationPage
+        category={selectedCategory}
+        onBack={() => setSelectedCategory(null)}
+        isConnected={isLoggedIn}
+      />
+    );
   } else if (showMyProcedures) {
     content = <MyProceduresPage onBack={() => setShowMyProcedures(false)} />;
   } else if (showMyAppointments) {
@@ -217,13 +213,14 @@ export default function AccompagnePage({
       { name: "Handicap", icon: "♿" },
       { name: "Aides", icon: "💰" },
     ];
+
     content = (
-      <main className="max-w-2xl mx-auto px-6 py-4">
+      <main className="w-full max-w-4xl mx-auto px-6 py-6">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-semibold text-[#414143] mb-6 leading-tight">
+          <h1 className="text-2xl font-semibold text-[#414143] mb-4">
             {isLoggedIn ? `Bonjour ${numeroUnique} ! Comment puis-je vous aider ?` : "Triptik à votre service"}
           </h1>
-          <p className="text-base text-[#73726d] leading-relaxed">
+          <p className="text-base text-[#73726d]">
             {isLoggedIn
               ? "Votre profil est maintenant configuré. Posez-moi vos questions ou choisissez une thématique."
               : "Vous pouvez sélectionner une des thématiques ci-dessous ou poser directement une question"}
@@ -231,25 +228,24 @@ export default function AccompagnePage({
         </div>
         <div className="mb-12">
           <h2 className="text-xl font-normal text-[#000000] text-center mb-8">Choisissez une thématique</h2>
-          <div className="grid grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
             {categories.map((category, index) => (
               <Button
                 key={index}
                 variant="outline"
                 onClick={() => handleCategoryClick(category.name)}
-                className="h-24 w-full flex flex-col items-center justify-center gap-2 border-2 border-[#e7e7e7] bg-white hover:bg-gray-50 rounded-xl p-3"
+                className="h-32 w-full max-w-[180px] mx-auto flex flex-col items-center justify-center gap-3 border-2 border-[#e7e7e7] bg-white hover:bg-gray-50 rounded-xl p-4"
               >
-                <div className="w-11 h-11 bg-[#f8f8f8] rounded-full flex items-center justify-center">
-                  <span className="text-lg">{category.icon}</span>
+                <div className="w-16 h-16 bg-[#f8f8f8] rounded-full flex items-center justify-center mx-auto">
+                  <span className="text-2xl">{category.icon}</span>
                 </div>
-                <span className="text-sm font-medium text-[#000000] text-center leading-tight">
+                <span className="text-base font-medium text-[#000000] text-center leading-tight">
                   {category.name}
                 </span>
               </Button>
             ))}
           </div>
         </div>
-        {!isLoggedIn && <></>}
         {isLoggedIn && (
           <div className="text-center">
             <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-full">
@@ -262,30 +258,31 @@ export default function AccompagnePage({
     );
   }
 
+  // Conditions d'affichage
   const shouldShowHeaderAndChat = !showCreateAccount && !showPremiereConnexion && !showCreateAccountSimple && !selectedCategory;
   const showChatMessages = shouldShowHeaderAndChat && (isLoggedIn || (numeroUnique && numeroUnique.startsWith('guest_'))) && state.currentMessages.length > 0;
   const showProcessingIndicator = shouldShowHeaderAndChat && state.processingState.currentStep !== 'idle' && !showChatMessages;
 
   return (
-    <div className="min-h-screen bg-[#ffffff]">
+    <div className="min-h-screen bg-[#ffffff] flex flex-col">
       {shouldShowHeaderAndChat && renderHeader()}
       {content}
       {showChatMessages && (
         <div className="fixed top-20 left-0 right-0 bottom-24 bg-white z-30 border-t border-gray-200 flex flex-col">
-          <div className="max-w-2xl mx-auto p-4 border-b border-gray-100 w-full">
+          <div className="max-w-4xl mx-auto p-4 border-b border-gray-100 w-full">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-sm">😊</div>
               <span className="text-base font-medium text-[#414143]">Assistant Triptik</span>
             </div>
           </div>
-          <div className="flex-1 max-w-2xl mx-auto p-6 overflow-y-auto w-full">
+          <div className="flex-1 max-w-4xl mx-auto p-6 overflow-y-auto w-full">
             <SimpleChatDisplay />
           </div>
         </div>
       )}
       {showProcessingIndicator && (
         <div className="fixed top-20 left-0 right-0 z-40 bg-white border-t border-gray-200">
-          <div className="max-w-2xl mx-auto p-4">
+          <div className="max-w-4xl mx-auto p-4">
             <ProcessingIndicator
               currentStep={state.processingState.currentStep}
               message={state.processingState.message}
@@ -295,10 +292,9 @@ export default function AccompagnePage({
           </div>
         </div>
       )}
-      {/* Assurez-vous que cette condition est correcte pour afficher la barre "Poser une question" */}
       {shouldShowHeaderAndChat && !isLoggedIn && !numeroUnique && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-4xl mx-auto">
             <Button
               onClick={handleConnexionButtonClick}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-xl font-medium"
@@ -339,10 +335,10 @@ export default function AccompagnePage({
         }}
       />
       {showUserModal && userData && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-xl w-full max-w-md shadow">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white p-6 rounded-xl w-full max-w-md shadow-lg">
             <h2 className="text-xl font-bold mb-4">Mon Profil Supabase</h2>
-            <pre className="text-xs bg-gray-100 p-2 rounded overflow-x-auto">
+            <pre className="text-xs bg-gray-100 p-2 rounded overflow-x-auto max-h-64">
               {JSON.stringify(userData, null, 2)}
             </pre>
             <Button onClick={() => setShowUserModal(false)} className="mt-4 w-full">
