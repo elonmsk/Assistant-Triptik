@@ -73,7 +73,9 @@ export default function AccompagnePage({
   };
 
   const handleLoadUserData = async () => {
-    if (!numeroUnique) return;
+    // 🔒 Sécurité : ne rien faire si pas connecté
+    if (!isLoggedIn || !numeroUnique) return;
+
     const numeroInt = parseInt(numeroUnique, 10);
     const { data, error } = await supabase
       .from("info")
@@ -149,13 +151,16 @@ export default function AccompagnePage({
       <div className="flex items-center gap-3">
         <VersionBadge variant="header" />
         {isLoggedIn && (
-          <Button variant="ghost" size="icon" onClick={handleLogout}>
-            Déconnexion
-          </Button>
+          <>
+            <Button variant="ghost" size="icon" onClick={handleLoadUserData}>
+              {/* 👤 Icône profil affichée UNIQUEMENT si connecté */}
+              <User className="w-6 h-6 text-[#414143]" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={handleLogout}>
+              Déconnexion
+            </Button>
+          </>
         )}
-        <Button variant="ghost" size="icon" onClick={handleLoadUserData}>
-          <User className="w-6 h-6 text-[#414143]" />
-        </Button>
       </div>
     </header>
   );
@@ -220,7 +225,7 @@ export default function AccompagnePage({
           <h1 className="text-2xl font-semibold text-[#414143] mb-4">
             {isLoggedIn ? `Bonjour ${numeroUnique} ! Comment puis-je vous aider ?` : "Triptik à votre service"}
           </h1>
-          <p className="text-base text-[#73726d]">
+        <p className="text-base text-[#73726d]">
             {isLoggedIn
               ? "Votre profil est maintenant configuré. Posez-moi vos questions ou choisissez une thématique."
               : "Vous pouvez sélectionner une des thématiques ci-dessous ou poser directement une question"}
@@ -259,9 +264,21 @@ export default function AccompagnePage({
   }
 
   // Conditions d'affichage
-  const shouldShowHeaderAndChat = !showCreateAccount && !showPremiereConnexion && !showCreateAccountSimple && !selectedCategory;
-  const showChatMessages = shouldShowHeaderAndChat && (isLoggedIn || (numeroUnique && numeroUnique.startsWith('guest_'))) && state.currentMessages.length > 0;
-  const showProcessingIndicator = shouldShowHeaderAndChat && state.processingState.currentStep !== 'idle' && !showChatMessages;
+  const shouldShowHeaderAndChat =
+    !showCreateAccount &&
+    !showPremiereConnexion &&
+    !showCreateAccountSimple &&
+    !selectedCategory;
+
+  const showChatMessages =
+    shouldShowHeaderAndChat &&
+    (isLoggedIn || (numeroUnique && numeroUnique.startsWith('guest_'))) &&
+    state.currentMessages.length > 0;
+
+  const showProcessingIndicator =
+    shouldShowHeaderAndChat &&
+    state.processingState.currentStep !== 'idle' &&
+    !showChatMessages;
 
   return (
     <div className="min-h-screen bg-[#ffffff] flex flex-col">
