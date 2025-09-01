@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { ChatProvider } from '@/contexts/ChatContext'
+import ClientLayout from './ClientLayout'
 
 export const metadata: Metadata = {
   title: 'Assistant Triptik',
@@ -16,10 +17,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr">
-      <body>
-        <ChatProvider>
-          {children}
-        </ChatProvider>
+      <body suppressHydrationWarning={true}>
+        <ClientLayout>
+          <ChatProvider>
+            {children}
+          </ChatProvider>
+        </ClientLayout>
       </body>
     </html>
   )

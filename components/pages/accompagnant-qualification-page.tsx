@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from "react"
 import { ChatInput, SimpleChatDisplay } from "@/components/ui-custom"
 import { useChat } from '@/contexts/ChatContext'
 import ProcessingIndicator from '@/components/chat/ProcessingIndicator'
+import { generateStableId } from '@/lib/utils'
 
 interface AccompagnantQualificationPageProps {
   category: string
@@ -29,7 +30,7 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
   const { state, setUserInfo } = useChat()
 
   useEffect(() => {
-    const numero = localStorage.getItem("uid") || localStorage.getItem("numero") || `accompagnant_${Date.now()}`
+    const numero = localStorage.getItem("uid") || localStorage.getItem("numero") || generateStableId('accompagnant')
     setUserInfo(numero, 'accompagnant')
   }, [setUserInfo])
 

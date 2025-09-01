@@ -1,6 +1,7 @@
 "use client"
 
 import React, { createContext, useContext, useReducer, useCallback } from 'react'
+import { generateStableId } from '@/lib/utils'
 
 // Types
 interface Message {
@@ -335,7 +336,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
     // Ajouter immédiatement le message utilisateur
     const userMessage: Message = {
-      id: `user-${Date.now()}`,
+      id: generateStableId('user'),
       role: 'user',
       content: message,
       created_at: new Date().toISOString()
@@ -396,7 +397,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       const decoder = new TextDecoder()
       
       let assistantMessage: Message = {
-        id: `assistant-${Date.now()}`,
+        id: generateStableId('assistant'),
         role: 'assistant',
         content: "L'assistant Triptik est en train d'écrire...",
         created_at: new Date().toISOString()

@@ -311,7 +311,7 @@ export async function POST(req: Request) {
           // Signal de fin
           safeEnqueue({ 
             type: 'done',
-            conversationId: conversationId || 'temp-' + Date.now()
+            conversationId: conversationId || `temp-${Math.random().toString(36).slice(2, 11)}`
           });
 
           safeClose();

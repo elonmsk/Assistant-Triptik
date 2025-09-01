@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from "react"
 import { ChatInput, SimpleChatDisplay } from "@/components/ui-custom"
 import { useChat } from '@/contexts/ChatContext'
 import ProcessingIndicator from '@/components/chat/ProcessingIndicator'
+import { generateStableId } from '@/lib/utils'
 
 interface CategoryQualificationPageProps {
   category: string
@@ -34,7 +35,7 @@ export default function CategoryQualificationPage({
   const { state, setUserInfo } = useChat()
 
   useEffect(() => {
-    const numero = localStorage.getItem("uid") || localStorage.getItem("numero") || `guest_${Date.now()}`
+    const numero = localStorage.getItem("uid") || localStorage.getItem("numero") || generateStableId('guest')
     setUserInfo(numero, 'accompagne')
   }, [setUserInfo])
 

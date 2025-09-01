@@ -5,6 +5,30 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+// Générateur d'ID stable pour éviter les problèmes d'hydratation
+let idCounter = 0
+export function generateStableId(prefix: string = "id"): string {
+  // Utiliser un compteur au lieu de Date.now() pour des IDs prévisibles
+  // En production, on pourrait utiliser une librairie comme uuid
+  if (typeof window !== 'undefined') {
+    // Côté client, on peut utiliser un timestamp initial + compteur
+    if (!window.__stableIdBase) {
+      window.__stableIdBase = Date.now()
+    }
+    return `${prefix}-${window.__stableIdBase}-${++idCounter}`
+  } else {
+    // Côté serveur, utiliser seulement le compteur
+    return `${prefix}-server-${++idCounter}`
+  }
+}
+
+// Extension du window pour TypeScript
+declare global {
+  interface Window {
+    __stableIdBase?: number
+  }
+}
+
 // Fonctions pour la gestion des qualifications
 export interface QualificationData {
   category: string
@@ -14,6 +38,11 @@ export interface QualificationData {
 }
 
 export function getQualificationData(category: string, userType: 'accompagne' | 'accompagnant' = 'accompagne'): QualificationData | null {
+  // Vérifier que nous sommes côté client
+  if (typeof window === 'undefined') {
+    return null
+  }
+  
   try {
     const key = userType === 'accompagnant' ? `qualification_${category}_accompagnant` : `qualification_${category}`
     const data = localStorage.getItem(key)
@@ -79,6 +108,11 @@ export function formatQualificationForPrompt(qualificationData: QualificationDat
 }
 
 export function getAllQualificationData(userType: 'accompagne' | 'accompagnant' = 'accompagne'): QualificationData[] {
+  // Vérifier que nous sommes côté client
+  if (typeof window === 'undefined') {
+    return []
+  }
+  
   const qualifications: QualificationData[] = []
   
   try {

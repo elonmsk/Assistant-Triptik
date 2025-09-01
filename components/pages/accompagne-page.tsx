@@ -13,6 +13,7 @@ import { AccompagneSideMenu, ChatInput } from "@/components/ui-custom";
 import { Button } from "@/components/ui/button";
 import { Menu, User } from "lucide-react";
 import { useChat } from '@/contexts/ChatContext';
+import { generateStableId } from '@/lib/utils';
 import SimpleChatDisplay from '@/components/ui-custom/simple-chat-display';
 import ProcessingIndicator from '@/components/chat/ProcessingIndicator';
 import { VersionBadge } from "@/components/ui/version-badge";
@@ -103,7 +104,7 @@ export default function AccompagnePage({
 
   const handleContinuerSansConnexion = () => {
     setShowPremiereConnexion(false);
-    const guestId = `guest_${Date.now()}`;
+    const guestId = generateStableId('guest');
     setNumeroUnique(guestId);
     setIsLoggedIn(false);
   };

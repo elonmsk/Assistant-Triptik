@@ -21,9 +21,13 @@ export async function POST(request: Request) {
 
   // 2. Générer un identifiant unique
   let uid
+  let attempts = 0
   do {
-    uid = Math.floor(100000 + Math.random() * 900000).toString()
-  } while (existing.includes(uid))
+    // Utiliser une combinaison de timestamp et compteur pour plus de fiabilité
+    const timestamp = Date.now().toString().slice(-6)
+    const counter = (attempts++).toString().padStart(3, '0')
+    uid = timestamp + counter.slice(-3)
+  } while (existing.includes(uid) && attempts < 1000)
 
   const email = `${uid}@gmail.com`
 

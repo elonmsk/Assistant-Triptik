@@ -194,7 +194,7 @@ export async function POST(req: Request) {
     // TEMPORAIRE: Retourner directement la réponse sans Supabase
     return NextResponse.json({
       message: llmResponse.content,
-      conversationId: conversationId || 'temp-' + Date.now(),
+      conversationId: conversationId || `temp-${Math.random().toString(36).slice(2, 11)}`,
       success: true
     })
 

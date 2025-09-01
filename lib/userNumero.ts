@@ -84,3 +84,4 @@ export function getUserNumeroForDB(userNumero: string): number | null {
 export function isValidUserNumero(userNumero: string): boolean {
   return parseUserNumero(userNumero).isValid
 }
+
