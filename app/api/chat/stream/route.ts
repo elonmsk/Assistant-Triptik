@@ -88,6 +88,19 @@ Tu dois analyser la question de l'utilisateur et déterminer la catégorie princ
     - https://www.caf.fr/
     - https://www.msa.fr/
 
+11. **FORMATION** - Utilise uniquement :
+    - https://watizat.org/ (PDFs sur la formation)
+    - https://www.paris.fr/pages/cours-municipaux-d-adultes-205
+    - https://oriane.info/
+    - https://www.lesbonsclics.fr/fr/media/sujet/wtc/e-demarches/
+
+12. **ADMINISTRATIF** - Utilise uniquement :
+    - https://watizat.org/ (PDFs sur les démarches administratives)
+    - https://www.service-public.fr/
+    - https://www.gouvernement.fr/
+    - https://www.ofii.fr/
+    - https://administration-etrangers-en-france.interieur.gouv.fr/particuliers/#/
+
 **RÈGLES IMPORTANTES :**
 - Commence TOUJOURS par consulter https://watizat.org/ pour des informations de base et des guides pratiques
 - Les informations de Watizat sont souvent dans des PDFs, mentionne-les dans tes sources
@@ -763,6 +776,66 @@ La CAF et la MSA gèrent les aides sociales et familiales.
 - **MSA** : 01 41 63 72 72`;
   }
   
+  // Formation
+  if (lowerMessage.includes('formation') || lowerMessage.includes('cours') || lowerMessage.includes('formation') || lowerMessage.includes('formation')) {
+    return `# 📚 Formation - Cours et formations
+
+## 📋 Informations principales
+Plusieurs organismes proposent des cours de formation.
+
+## 🔗 Sites consultés
+- [Service Public](https://www.service-public.fr/)
+- [Education Nationale](https://www.education.gouv.fr/)
+- [France Travail](https://www.francetravail.fr/accueil/formation)
+
+## 📝 Étapes à suivre
+1. **Identifier le cours** : Consultez le site officiel
+2. **S'inscrire** : Suivre les instructions
+3. **Participer** : Assister aux cours
+
+## ⚠️ Points importants
+> **Attention** : Les délais de début de formation peuvent être stricts
+
+## 💡 Conseils pratiques
+- Préparez vos justificatifs
+- Gardez votre dossier à jour
+- Suivez les instructions
+
+## 📞 Contacts utiles
+- **Service Public** : 3939 (numéro gratuit)
+- **Education Nationale** : 01 40 05 50 50`;
+  }
+  
+  // Administratif
+  if (lowerMessage.includes('administratif') || lowerMessage.includes('démarche') || lowerMessage.includes('papier') || lowerMessage.includes('gouvernement') || lowerMessage.includes('administration')) {
+    return `# 📋 Démarches administratives - Accompagnement
+
+## 📋 Informations principales
+Le service public accompagne les démarches administratives.
+
+## 🔗 Sites consultés
+- [Service Public](https://www.service-public.fr/)
+- [Gouvernement](https://www.gouvernement.fr/)
+- [Administration Étrangers](https://administration-etrangers-en-france.interieur.gouv.fr/particuliers/#/)
+
+## 📝 Étapes à suivre
+1. **Identifier la démarche** : Consultez le guide en ligne
+2. **Rassembler les documents** : Liste fournie sur le site
+3. **Faire la demande** : En ligne ou en agence
+
+## ⚠️ Points importants
+> **Attention** : Gardez toujours une copie de vos documents
+
+## 💡 Conseils pratiques
+- Préparez vos documents à l'avance
+- Faites des photocopies
+- Suivez les instructions étape par étape
+
+## 📞 Contacts utiles
+- **Service Public** : 3939 (numéro gratuit)
+- **Urssaf** : 3646 (numéro gratuit)`;
+  }
+  
   // Réponse par défaut
   return `# 📋 Informations générales - Orientation
 
@@ -780,6 +853,8 @@ Je peux vous aider avec différentes catégories de questions.
 - ⚖️ **Droits** : Accompagnement juridique
 - 📚 **Apprentissage français** : Cours et formations
 - 💰 **Aides financières** : Calcul et demande
+- 📚 **Formation** : Cours et formations
+- 📋 **Administratif** : Accompagnement administratif
 
 ## 💡 Conseils pratiques
 - Précisez votre question pour une réponse plus adaptée
@@ -842,6 +917,16 @@ function detectCategory(message: string): string {
   // Aides financières
   if (lowerMessage.includes('aide') || lowerMessage.includes('argent') || lowerMessage.includes('allocation') || lowerMessage.includes('caf') || lowerMessage.includes('msa')) {
     return 'aides financières';
+  }
+  
+  // Formation
+  if (lowerMessage.includes('formation') || lowerMessage.includes('cours') || lowerMessage.includes('formation') || lowerMessage.includes('formation')) {
+    return 'formation';
+  }
+  
+  // Administratif
+  if (lowerMessage.includes('administratif') || lowerMessage.includes('démarche') || lowerMessage.includes('papier') || lowerMessage.includes('gouvernement') || lowerMessage.includes('administration')) {
+    return 'administratif';
   }
   
   return 'général';
