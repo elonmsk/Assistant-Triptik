@@ -12,10 +12,10 @@ import CreateAccountPage from "@/components/pages/create-account-page";
 import { AccompagneSideMenu, ChatInput } from "@/components/ui-custom";
 import { Button } from "@/components/ui/button";
 import { Menu, User } from "lucide-react";
-import { useChat } from '@/contexts/ChatContext';
-import { generateStableId } from '@/lib/utils';
-import SimpleChatDisplay from '@/components/ui-custom/simple-chat-display';
-import ProcessingIndicator from '@/components/chat/ProcessingIndicator';
+import { useChat } from "@/contexts/ChatContext";
+import { generateStableId } from "@/lib/utils";
+import SimpleChatDisplay from "@/components/ui-custom/simple-chat-display";
+import ProcessingIndicator from "@/components/chat/ProcessingIndicator";
 import { VersionBadge } from "@/components/ui/version-badge";
 
 interface AccompagnePageProps {
@@ -61,7 +61,7 @@ export default function AccompagnePage({
   }, [propIsLoggedIn, initialCategory]);
 
   useEffect(() => {
-    if (numeroUnique) setUserInfo(numeroUnique, 'accompagne');
+    if (numeroUnique) setUserInfo(numeroUnique, "accompagne");
   }, [numeroUnique, setUserInfo]);
 
   // Handlers
@@ -74,7 +74,6 @@ export default function AccompagnePage({
   };
 
   const handleLoadUserData = async () => {
-    // 🔒 Sécurité : ne rien faire si pas connecté
     if (!isLoggedIn || !numeroUnique) return;
 
     const numeroInt = parseInt(numeroUnique, 10);
@@ -104,7 +103,7 @@ export default function AccompagnePage({
 
   const handleContinuerSansConnexion = () => {
     setShowPremiereConnexion(false);
-    const guestId = generateStableId('guest');
+    const guestId = generateStableId("guest");
     setNumeroUnique(guestId);
     setIsLoggedIn(false);
   };
@@ -154,7 +153,6 @@ export default function AccompagnePage({
         {isLoggedIn && (
           <>
             <Button variant="ghost" size="icon" onClick={handleLoadUserData}>
-              {/* 👤 Icône profil affichée UNIQUEMENT si connecté */}
               <User className="w-6 h-6 text-[#414143]" />
             </Button>
             <Button variant="ghost" size="icon" onClick={handleLogout}>
@@ -226,7 +224,7 @@ export default function AccompagnePage({
           <h1 className="text-2xl font-semibold text-[#414143] mb-4">
             {isLoggedIn ? `Bonjour ${numeroUnique} ! Comment puis-je vous aider ?` : "Triptik à votre service"}
           </h1>
-        <p className="text-base text-[#73726d]">
+          <p className="text-base text-[#73726d]">
             {isLoggedIn
               ? "Votre profil est maintenant configuré. Posez-moi vos questions ou choisissez une thématique."
               : "Vous pouvez sélectionner une des thématiques ci-dessous ou poser directement une question"}
@@ -273,24 +271,67 @@ export default function AccompagnePage({
 
   const showChatMessages =
     shouldShowHeaderAndChat &&
-    (isLoggedIn || (numeroUnique && numeroUnique.startsWith('guest_'))) &&
+    (isLoggedIn || (numeroUnique && numeroUnique.startsWith("guest_"))) &&
     state.currentMessages.length > 0;
 
   const showProcessingIndicator =
     shouldShowHeaderAndChat &&
-    state.processingState.currentStep !== 'idle' &&
+    state.processingState.currentStep !== "idle" &&
     !showChatMessages;
 
+  // Flag de verrouillage du scroll si un overlay est ouvert
+  const isScrollLocked =
+    showChatMessages || showProcessingIndicator || showUserModal || isMenuOpen;
+
+  // 🔒 Verrouiller le scroll (html + body) quand isScrollLocked = true
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+
+    const preventDefault = (e: TouchEvent) => e.preventDefault();
+
+    const apply = () => {
+      const scrollbarComp = window.innerWidth - html.clientWidth;
+      html.style.overflow = "hidden";
+      body.style.overflow = "hidden";
+      body.style.paddingRight = `${scrollbarComp}px`;
+      html.style.overscrollBehavior = "none";
+      body.addEventListener("touchmove", preventDefault, { passive: false });
+    };
+
+    const reset = () => {
+      html.style.overflow = "";
+      body.style.overflow = "";
+      body.style.paddingRight = "";
+      html.style.overscrollBehavior = "";
+      body.removeEventListener("touchmove", preventDefault as any);
+    };
+
+    if (isScrollLocked) apply();
+    else reset();
+
+    return () => reset();
+  }, [isScrollLocked]);
+
   return (
-    <div className="min-h-screen bg-[#ffffff] flex flex-col">
+    <div
+      className={`bg-[#ffffff] flex flex-col ${
+        isScrollLocked ? "h-screen overflow-hidden" : "min-h-screen"
+      }`}
+    >
       {shouldShowHeaderAndChat && renderHeader()}
       {content}
+
       {showChatMessages && (
         <div className="fixed top-20 left-0 right-0 bottom-24 bg-white z-30 border-t border-gray-200 flex flex-col">
           <div className="max-w-4xl mx-auto p-4 border-b border-gray-100 w-full">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-sm">😊</div>
-              <span className="text-base font-medium text-[#414143]">Assistant Triptik</span>
+              <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-sm">
+                😊
+              </div>
+              <span className="text-base font-medium text-[#414143]">
+                Assistant Triptik
+              </span>
             </div>
           </div>
           <div className="flex-1 max-w-4xl mx-auto p-6 overflow-y-auto w-full">
@@ -298,6 +339,7 @@ export default function AccompagnePage({
           </div>
         </div>
       )}
+
       {showProcessingIndicator && (
         <div className="fixed top-20 left-0 right-0 z-40 bg-white border-t border-gray-200">
           <div className="max-w-4xl mx-auto p-4">
@@ -310,6 +352,7 @@ export default function AccompagnePage({
           </div>
         </div>
       )}
+
       {shouldShowHeaderAndChat && !isLoggedIn && !numeroUnique && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
           <div className="max-w-4xl mx-auto">
@@ -322,19 +365,22 @@ export default function AccompagnePage({
           </div>
         </div>
       )}
+
       {shouldShowHeaderAndChat && isLoggedIn && (
-        <ChatInput
-          theme={selectedCategory || undefined}
-          onSendMessage={handleSendMessage}
-        />
+        <ChatInput theme={selectedCategory || undefined} onSendMessage={handleSendMessage} />
       )}
-      {shouldShowHeaderAndChat && !isLoggedIn && numeroUnique && numeroUnique.startsWith('guest_') && (
-        <ChatInput
-          theme={selectedCategory || undefined}
-          placeholder="Posez votre question (mode invité)"
-          onSendMessage={handleSendMessage}
-        />
-      )}
+
+      {shouldShowHeaderAndChat &&
+        !isLoggedIn &&
+        numeroUnique &&
+        numeroUnique.startsWith("guest_") && (
+          <ChatInput
+            theme={selectedCategory || undefined}
+            placeholder="Posez votre question (mode invité)"
+            onSendMessage={handleSendMessage}
+          />
+        )}
+
       <AccompagneSideMenu
         isOpen={isMenuOpen}
         onClose={() => setIsMenuOpen(false)}
@@ -352,6 +398,7 @@ export default function AccompagnePage({
           setIsMenuOpen(false);
         }}
       />
+
       {showUserModal && userData && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white p-6 rounded-xl w-full max-w-md shadow-lg">
