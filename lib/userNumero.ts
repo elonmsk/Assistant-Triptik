@@ -12,7 +12,7 @@ export interface ParsedUserNumero {
 
 /**
  * Parse et valide un userNumero
- * @param userNumero - Le userNumero à parser (peut être "guest_123" ou "123456")
+ * @param userNumero - Le userNumero à parser (peut être "guest_123", "123456", "accompagnant-123-1", "accompagne-123-1", "guest-123-1")
  * @returns Objet avec les informations parsées
  */
 export function parseUserNumero(userNumero: string): ParsedUserNumero {
@@ -44,6 +44,41 @@ export function parseUserNumero(userNumero: string): ParsedUserNumero {
       numericValue: timestamp,
       originalValue: userNumero,
       isLegacyFormat: true
+    }
+  }
+
+  // Format nouveau: accompagnant-TIMESTAMP-COUNTER, accompagne-TIMESTAMP-COUNTER, ou guest-TIMESTAMP-COUNTER
+  if (userNumero.startsWith('accompagnant-') || userNumero.startsWith('accompagne-') || userNumero.startsWith('guest-')) {
+    const parts = userNumero.split('-')
+    
+    // Doit avoir 3 parties: [type, timestamp, counter]
+    if (parts.length !== 3) {
+      return {
+        isValid: false,
+        numericValue: null,
+        originalValue: userNumero,
+        isLegacyFormat: false
+      }
+    }
+    
+    const timestamp = parseInt(parts[1], 10)
+    const counter = parseInt(parts[2], 10)
+    
+    if (isNaN(timestamp) || isNaN(counter)) {
+      return {
+        isValid: false,
+        numericValue: null,
+        originalValue: userNumero,
+        isLegacyFormat: false
+      }
+    }
+    
+    // Utilise le timestamp comme valeur numérique pour la DB
+    return {
+      isValid: true,
+      numericValue: timestamp,
+      originalValue: userNumero,
+      isLegacyFormat: false
     }
   }
 
