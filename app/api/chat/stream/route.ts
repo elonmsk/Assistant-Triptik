@@ -342,9 +342,13 @@ export async function POST(req: Request) {
 
     return new Response(stream, {
       headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
-        'Cache-Control': 'no-cache',
+        'Content-Type': 'text/event-stream; charset=utf-8',
+        'Cache-Control': 'no-cache, no-transform',
         'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'X-Accel-Buffering': 'no', // Disable nginx buffering
       },
     });
 
@@ -367,42 +371,118 @@ async function callOpenAIStream(
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 90000);
 
-    console.log('🚀 Requête envoyée à OpenAI:', { message, systemContext });
+    console.log('🚀 Requête envoyée à OpenAI streaming:', { message, systemContext });
 
-    const response = await openai.responses.create({
-      model: "o4-mini",
-      reasoning: { effort: "medium" },
-      tools: [{ type: "web_search_preview" }],
-      input: [
+    // D'abord essayer o4-mini avec les outils spéciaux pour une réponse enrichie
+    let enrichedResponse = '';
+    try {
+      safeEnqueue({ type: 'processing_step', step: 'analyzing', message: 'Analyse de votre question...', progress: 10 });
+      
+      const enrichedResult = await openai.responses.create({
+        model: "o4-mini",
+        reasoning: { effort: "medium" },
+        tools: [{ type: "web_search_preview" }],
+        input: [
+          {
+            role: "system",
+            content: systemContext
+          },
+          ...contextMessages.map(msg => ({
+            role: msg.role as "user" | "assistant",
+            content: msg.content
+          })),
+          {
+            role: "user",
+            content: message
+          }
+        ]
+      });
+
+      enrichedResponse = enrichedResult.output_text || '';
+      safeEnqueue({ type: 'processing_step', step: 'generating', message: 'Génération de la réponse...', progress: 80 });
+      
+    } catch (enrichedError) {
+      console.warn('Erreur avec o4-mini, utilisation du modèle de fallback:', enrichedError);
+      enrichedResponse = '';
+    }
+
+    // Si on a une réponse enrichie, on l'utilise pour le streaming
+    if (enrichedResponse) {
+      clearTimeout(timeoutId);
+      
+      const formattedContent = formatResponse(enrichedResponse);
+      
+      // Simuler le streaming en divisant la réponse en chunks
+      const words = formattedContent.split(' ');
+      const chunkSize = Math.max(3, Math.floor(words.length / 20)); // Environ 20 chunks
+      let accumulatedContent = '';
+      
+      for (let i = 0; i < words.length; i += chunkSize) {
+        const chunk = words.slice(i, i + chunkSize).join(' ') + ' ';
+        accumulatedContent += chunk;
+        
+        safeEnqueue({
+          type: 'chunk',
+          content: accumulatedContent
+        });
+        
+        // Petite pause pour simuler le streaming
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+
+      // S'assurer que le contenu final est complet
+      if (accumulatedContent.trim() !== formattedContent.trim()) {
+        safeEnqueue({
+          type: 'chunk',
+          content: formattedContent
+        });
+      }
+
+      return { success: true, content: formattedContent };
+    }
+
+    // Fallback avec streaming classique si o4-mini échoue
+    safeEnqueue({ type: 'processing_step', step: 'processing', message: 'Traitement avec modèle alternatif...', progress: 50 });
+    
+    const stream = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      stream: true,
+      messages: [
         {
           role: "system",
           content: systemContext
         },
         ...contextMessages.map(msg => ({
-          role: msg.role as "user" | "assistant",
+          role: msg.role as "user" | "assistant", 
           content: msg.content
         })),
         {
           role: "user",
           content: message
         }
-      ]
+      ],
+      temperature: 0.7,
     });
 
     clearTimeout(timeoutId);
+    let accumulatedContent = '';
+    
+    safeEnqueue({ type: 'processing_step', step: 'generating', message: 'Génération de la réponse...', progress: 80 });
 
-    let content = response.output_text || "Désolé, je n'ai pas pu générer de réponse.";
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content || '';
+      if (content) {
+        accumulatedContent += content;
+        
+        safeEnqueue({
+          type: 'chunk',
+          content: formatResponse(accumulatedContent)
+        });
+      }
+    }
 
-    // Formatage de la réponse
-    content = formatResponse(content);
-
-    // ENVOYER LA RÉPONSE COMPLÈTE D'UN COUP (pas de streaming)
-    safeEnqueue({
-      type: 'chunk',
-      content: content
-    });
-
-    return { success: true, content };
+    const finalContent = formatResponse(accumulatedContent);
+    return { success: true, content: finalContent };
 
   } catch (error) {
     console.error("Erreur lors de l'appel à OpenAI:", error);
@@ -413,11 +493,38 @@ async function callOpenAIStream(
     
     const formattedContent = formatResponse(fallbackContent);
     
-    // Envoyer la réponse de fallback
-    safeEnqueue({
-      type: 'chunk',
-      content: formattedContent
-    });
+    // Envoyer la réponse de fallback avec simulation de streaming
+    const words = formattedContent.split(' ');
+    const chunkSize = Math.max(5, Math.floor(words.length / 10));
+    let accumulatedContent = '';
+    
+    try {
+      for (let i = 0; i < words.length; i += chunkSize) {
+        const chunk = words.slice(i, i + chunkSize).join(' ') + ' ';
+        accumulatedContent += chunk;
+        
+        safeEnqueue({
+          type: 'chunk',
+          content: accumulatedContent.trim()
+        });
+        
+        await new Promise(resolve => setTimeout(resolve, 150));
+      }
+      
+      // S'assurer que le contenu final est complet
+      if (accumulatedContent.trim() !== formattedContent.trim()) {
+        safeEnqueue({
+          type: 'chunk',
+          content: formattedContent
+        });
+      }
+    } catch (streamError) {
+      // Si même le streaming de fallback échoue, envoyer d'un coup
+      safeEnqueue({
+        type: 'chunk',
+        content: formattedContent
+      });
+    }
 
     return { success: true, content: formattedContent };
   }
