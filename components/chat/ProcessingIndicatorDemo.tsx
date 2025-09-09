@@ -1,12 +1,10 @@
 "use client"
-
 import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import ProcessingIndicator from './ProcessingIndicator'
 
 type ProcessingStep = 'idle' | 'analyzing' | 'searching' | 'scraping' | 'processing' | 'generating' | 'complete'
 
-// Exemples de requêtes avec leurs étapes spécifiques
 const exampleQueries = [
   {
     name: "Carte Vitale",
@@ -85,7 +83,6 @@ export default function ProcessingIndicatorDemo() {
     setMessage('')
     setProgress(0)
     setSelectedExample(exampleIndex)
-
     const example = exampleQueries[exampleIndex]
 
     // Étape 1: Analyse
@@ -141,21 +138,21 @@ export default function ProcessingIndicatorDemo() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
+    <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold mb-2">Démonstration - Indicateur de Progression</h2>
-        <p className="text-gray-600 mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold mb-2">Démonstration - Indicateur de Progression</h2>
+        <p className="text-xs sm:text-sm text-gray-600 mb-4 sm:mb-6">
           Testez l'indicateur avec différents types de requêtes pour voir comment les recherches et extractions s'adaptent
         </p>
-        
-        <div className="flex flex-wrap gap-3 justify-center mb-6">
+
+        <div className="flex flex-wrap gap-2 sm:gap-3 justify-center mb-4 sm:mb-6">
           {exampleQueries.map((example, index) => (
-            <Button 
+            <Button
               key={index}
               onClick={() => startDemo(index)}
               disabled={isRunning}
               variant={selectedExample === index ? "default" : "outline"}
-              className="mb-2"
+              className="text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
             >
               {example.name}
             </Button>
@@ -164,8 +161,8 @@ export default function ProcessingIndicatorDemo() {
       </div>
 
       {/* Mode normal */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Mode Normal (Complet)</h3>
+      <div className="space-y-3 sm:space-y-4">
+        <h3 className="text-sm sm:text-lg font-semibold">Mode Normal (Complet)</h3>
         <ProcessingIndicator
           currentStep={currentStep}
           message={message}
@@ -174,9 +171,9 @@ export default function ProcessingIndicatorDemo() {
       </div>
 
       {/* Mode compact */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Mode Compact</h3>
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <div className="space-y-3 sm:space-y-4">
+        <h3 className="text-sm sm:text-lg font-semibold">Mode Compact</h3>
+        <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4">
           <ProcessingIndicator
             currentStep={currentStep}
             message={message}
@@ -187,11 +184,11 @@ export default function ProcessingIndicatorDemo() {
       </div>
 
       {/* Mode chat - simulation d'une bulle de chat */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Mode Chat (Remplace la bulle)</h3>
-        <div className="flex items-start gap-3 max-w-[80%]">
-          <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0">
-            <span className="text-sm">🤖</span>
+      <div className="space-y-3 sm:space-y-4">
+        <h3 className="text-sm sm:text-lg font-semibold">Mode Chat (Remplace la bulle)</h3>
+        <div className="flex items-start gap-2 sm:gap-3 max-w-[90%] sm:max-w-[80%]">
+          <div className="w-6 h-6 sm:w-8 sm:h-8 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0">
+            <span className="text-xs sm:text-sm">🤖</span>
           </div>
           <ProcessingIndicator
             currentStep={currentStep}
@@ -203,15 +200,15 @@ export default function ProcessingIndicatorDemo() {
       </div>
 
       {/* Comparaison avec l'ancien indicateur */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Comparaison avec l'ancien indicateur</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-3 sm:space-y-4">
+        <h3 className="text-sm sm:text-lg font-semibold">Comparaison avec l'ancien indicateur</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
           <div>
-            <h4 className="font-medium mb-2">Ancien indicateur</h4>
-            <div className="bg-gray-100 text-gray-800 p-3 rounded-2xl rounded-tl-md">
+            <h4 className="text-xs sm:text-sm font-medium mb-1 sm:mb-2">Ancien indicateur</h4>
+            <div className="bg-gray-100 text-gray-800 p-2 sm:p-3 rounded-2xl rounded-tl-none">
               <div className="flex items-center space-x-1">
-                <span className="text-sm text-gray-600 italic">L'assistant Triptik est en train d'écrire</span>
-                <div className="flex space-x-1">
+                <span className="text-[10px] sm:text-xs text-gray-600 italic">L'assistant Triptik est en train d'écrire</span>
+                <div className="flex space-x-0.5 sm:space-x-1">
                   <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
                   <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
                   <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
@@ -220,7 +217,7 @@ export default function ProcessingIndicatorDemo() {
             </div>
           </div>
           <div>
-            <h4 className="font-medium mb-2">Nouvel indicateur</h4>
+            <h4 className="text-xs sm:text-sm font-medium mb-1 sm:mb-2">Nouvel indicateur</h4>
             <ProcessingIndicator
               currentStep={currentStep}
               message={message}
@@ -232,4 +229,4 @@ export default function ProcessingIndicatorDemo() {
       </div>
     </div>
   )
-} 
+}
