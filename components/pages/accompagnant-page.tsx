@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 "use client";
 
 import { Menu, X } from "lucide-react";
@@ -27,7 +27,7 @@ export default function AccompagnantPage() {
   const { setUserInfo, state } = useChat();
 
   // Initialiser l'identité "accompagnant"
-=======
+
 "use client"
 import { Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -47,7 +47,7 @@ export default function AccompagnantPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const { setUserInfo, state } = useChat()
 
->>>>>>> guillaume
+
   useEffect(() => {
     const numero =
       localStorage.getItem("uid") ||
@@ -67,14 +67,14 @@ export default function AccompagnantPage() {
   // 🔒 Figer le fond quand le chat plein écran OU le menu latéral est ouvert
   const isScrollLocked = showChatFullScreen || isMenuOpen;
 
-<<<<<<< HEAD
+
   useEffect(() => {
     if (!isScrollLocked) return;
-=======
+
   const showChatMessages = state.currentMessages.length > 0
   const showProcessingIndicator = state.processingState.currentStep !== 'idle' && !showChatMessages
   const isChatOpen = useMemo(() => showChatMessages || showProcessingIndicator, [showChatMessages, showProcessingIndicator])
->>>>>>> guillaume
+
 
     const html = document.documentElement;
     const body = document.body;
@@ -119,7 +119,7 @@ export default function AccompagnantPage() {
     );
 
   const categories = [
-<<<<<<< HEAD
+
     { name: "Santé", icon: "🏥" },
     { name: "Emploi", icon: "💼" },
     { name: "Famille", icon: "👨‍👩‍👧‍👦" },
@@ -134,7 +134,7 @@ export default function AccompagnantPage() {
     { name: "Handicap", icon: "♿" },
     { name: "Aides", icon: "💰" },
   ];
-=======
+
   { name: "Santé", icon: "🏥" },
   { name: "Emploi", icon: "💼" },
   { name: "Famille", icon: "👨‍👩‍👧‍👦" },
@@ -149,14 +149,14 @@ export default function AccompagnantPage() {
   { name: "Handicap", icon: "♿" },
   { name: "Aide", icon: "💰" },
   ]
->>>>>>> guillaume
+
 
   return (
-<<<<<<< HEAD
+
     <div className={`bg-[#ffffff] ${isScrollLocked ? "h-screen" : "min-h-screen"} pb-24`}>
-=======
+
     <div className="min-h-screen bg-white pb-24">
->>>>>>> guillaume
+
       {/* Header */}
       <header className="flex items-center justify-between py-3 px-6 border-b border-gray-200">
         <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(true)}>
@@ -177,7 +177,7 @@ export default function AccompagnantPage() {
 
       {/* Contenu accueil */}
       <main className="w-full max-w-4xl mx-auto px-6 py-6">
-<<<<<<< HEAD
+
         <div className="text-center mb-8">
           <h1 className="text-2xl font-semibold text-[#414143] mb-4">Triptik à votre service</h1>
           <p className="text-base text-[#73726d] leading-relaxed mb-2">
@@ -228,7 +228,7 @@ export default function AccompagnantPage() {
       {!showChatFullScreen && (
         <ChatInput theme={selectedCategory || undefined} onSendMessage={handleSendMessage} />
       )}
-=======
+
         {/* Accueil (catégories) */}
         {!isChatOpen && (
           <>
@@ -311,7 +311,7 @@ export default function AccompagnantPage() {
         theme={selectedCategory || undefined}
         onSendMessage={handleSendMessage}
       />
->>>>>>> guillaume
+
 
       {/* —— CHAT PLEIN ÉCRAN —— */}
       {showChatFullScreen && (

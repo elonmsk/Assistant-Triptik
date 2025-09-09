@@ -175,9 +175,9 @@ export default function AccompagnePage({
   const handleContinuerSansConnexion = () => {
     // Ferme le modal d'auth
     setShowPremiereConnexion(false);
-<<<<<<< HEAD
+
     const guestId = generateStableId("guest");
-=======
+
 
     // Génère un ID invité plus tolérant (accepté par toutes les vérifications)
     const raw = generateStableId("guest");
@@ -189,7 +189,7 @@ export default function AccompagnePage({
     localStorage.removeItem("numero");
 
     // Met à jour l'état
->>>>>>> guillaume
+
     setNumeroUnique(guestId);
     setIsLoggedIn(false);
   };
@@ -364,20 +364,20 @@ export default function AccompagnePage({
     !selectedCategory;
 
   const showChatMessages =
-<<<<<<< HEAD
+
     shouldShowHeaderAndChat &&
     (isLoggedIn || (numeroUnique && numeroUnique.startsWith("guest_"))) &&
     state.currentMessages.length > 0;
-=======
+
     shouldShowHeaderAndChat && (isLoggedIn || isGuest) && state.currentMessages.length > 0;
->>>>>>> guillaume
+
 
   const showProcessingIndicator =
     shouldShowHeaderAndChat &&
     state.processingState.currentStep !== "idle" &&
     !showChatMessages;
 
-<<<<<<< HEAD
+
   // Flag de verrouillage du scroll si un overlay est ouvert
   const isScrollLocked =
     showChatMessages || showProcessingIndicator || showUserModal || isMenuOpen;
@@ -453,7 +453,7 @@ export default function AccompagnePage({
       )}
 
       {shouldShowHeaderAndChat && !isLoggedIn && !numeroUnique && (
-=======
+
   // Blocage du scroll quand overlay
   const overlayOpen =
     showChatMessages ||
@@ -487,7 +487,7 @@ export default function AccompagnePage({
       );
     } else {
       return (
->>>>>>> guillaume
+
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
           <div className="max-w-4xl mx-auto">
             <Button
@@ -533,7 +533,7 @@ export default function AccompagnePage({
         </>
       )}
 
-<<<<<<< HEAD
+
       {shouldShowHeaderAndChat && isLoggedIn && (
         <ChatInput theme={selectedCategory || undefined} onSendMessage={handleSendMessage} />
       )}
@@ -548,7 +548,7 @@ export default function AccompagnePage({
             onSendMessage={handleSendMessage}
           />
         )}
-=======
+
       {showProcessingIndicator && (
         <div
           className="fixed left-0 right-0 z-40 bg-white border-t border-gray-200"
@@ -566,7 +566,7 @@ export default function AccompagnePage({
       )}
 
       {renderBottomBar()}
->>>>>>> guillaume
+
 
       <AccompagneSideMenu
         isOpen={isMenuOpen}
@@ -605,3 +605,4 @@ export default function AccompagnePage({
     </div>
   );
 }
+
