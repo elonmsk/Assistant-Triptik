@@ -55,19 +55,19 @@ export default function AccompagnantPage() {
   }
 
   const categories = [
-    { name: "Santé", icon: "🏥" },
-    { name: "Emploi", icon: "💼" },
-    { name: "Famille", icon: "👨‍👩‍👧‍👦" },
-    { name: "Formation Français", icon: "🇫🇷" },
-    { name: "Formation Pro", icon: "🎓" },
-    { name: "Logement", icon: "🏠" },
-    { name: "Éducation", icon: "📚" },
-    { name: "Juridique", icon: "⚖️" },
-    { name: "Transport", icon: "🚌" },
-    { name: "Démarches", icon: "📋" },
-    { name: "Culture", icon: "🖼️" },
-    { name: "Handicap", icon: "♿" },
-    { name: "Aides", icon: "💰" },
+  { name: "Santé", icon: "🏥" },
+  { name: "Emploi", icon: "💼" },
+  { name: "Famille", icon: "👨‍👩‍👧‍👦" },
+  { name: "Formation en français", icon: "🇫🇷" },
+  { name: "Formation professionnelle", icon: "🎓" },
+  { name: "Logement", icon: "🏠" },
+  { name: "Éducation", icon: "📚" },
+  { name: "Juridique", icon: "⚖️" },
+  { name: "Transport", icon: "🚌" },
+  { name: "Démarche", icon: "📋" },
+  { name: "Culture", icon: "🖼️" },
+  { name: "Handicap", icon: "♿" },
+  { name: "Aide", icon: "💰" },
   ]
 
   return (
