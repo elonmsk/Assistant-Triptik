@@ -4,19 +4,74 @@ import { useEffect, useRef } from 'react'
 import { useChat } from '@/contexts/ChatContext'
 import ReactMarkdown from 'react-markdown'
 import ProcessingIndicator from '@/components/chat/ProcessingIndicator'
+import { MessageRating } from '@/components/chat/MessageRating'
 
 interface SimpleChatDisplayProps {
   className?: string
 }
 
 export default function SimpleChatDisplay({ className = "" }: SimpleChatDisplayProps) {
-  const { state } = useChat()
+  const { state, updateMessageRating, updateMessageFeedback } = useChat()
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Auto-scroll vers le bas quand de nouveaux messages arrivent
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [state.currentMessages])
+
+  const handleRatingChange = async (messageId: string, rating: 'like' | 'dislike' | null) => {
+    // Mettre à jour l'état local immédiatement
+    updateMessageRating(messageId, rating)
+    
+    // Sauvegarder en base de données
+    try {
+      const response = await fetch('/api/messages/rating', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messageId,
+          rating,
+          userNumero: state.userNumero,
+          userType: state.userType
+        })
+      })
+
+      if (!response.ok) {
+        console.error('Erreur lors de la sauvegarde de la notation')
+      }
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde de la notation:', error)
+    }
+  }
+
+  const handleFeedbackSubmit = async (messageId: string, feedback: string) => {
+    // Mettre à jour l'état local immédiatement
+    updateMessageFeedback(messageId, feedback)
+    
+    // Sauvegarder en base de données
+    try {
+      const response = await fetch('/api/messages/rating', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messageId,
+          feedback,
+          userNumero: state.userNumero,
+          userType: state.userType
+        })
+      })
+
+      if (!response.ok) {
+        console.error('Erreur lors de la sauvegarde du feedback')
+      }
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde du feedback:', error)
+    }
+  }
 
   if (state.currentMessages.length === 0) {
     return null // Ne rien afficher s'il n'y a pas de messages
@@ -45,7 +100,7 @@ export default function SimpleChatDisplay({ className = "" }: SimpleChatDisplayP
       } else {
         // Message assistant - bulle grise alignée à gauche
         messages.push(
-                  <div key={`assistant-${i}`} className="mb-4 flex justify-start">
+          <div key={`assistant-${i}`} className="mb-4 flex justify-start">
             <div className="flex items-start gap-3 max-w-[85%] min-w-[300px]">
               <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0">
                 <span className="text-sm">🤖</span>
@@ -73,36 +128,49 @@ export default function SimpleChatDisplay({ className = "" }: SimpleChatDisplayP
                     </div>
                   )
                 ) : (
-                  <div className="prose prose-sm max-w-none overflow-hidden">
-                    <ReactMarkdown 
-                      components={{
-                        h1: ({node, ...props}) => <h1 className="text-xl font-bold my-2" {...props} />,
-                        h2: ({node, ...props}) => <h2 className="text-lg font-bold my-4" {...props} />,
-                        h3: ({node, ...props}) => <h3 className="text-base font-bold my-1" {...props} />,
-                        p: ({node, ...props}) => <p className="text-sm leading-relaxed my-1" {...props} />,
-                        ul: ({node, ...props}) => <ul className="list-disc list-inside my-2" {...props} />,
-                        ol: ({node, ...props}) => <ol className="list-decimal list-inside my-2" {...props} />,
-                        li: ({node, ...props}) => <li className="text-sm" {...props} />,
-                        a: ({node, ...props}) => (
-                          <a 
-                            className="text-blue-600 hover:underline cursor-pointer" 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              window.open(props.href, '_blank', 'noopener,noreferrer');
-                            }}
-                            {...props} 
-                          />
-                        ),
-                        strong: ({node, ...props}) => <strong className="font-bold" {...props} />,
-                        pre: ({node, ...props}) => <pre className="bg-gray-200 p-2 rounded text-xs overflow-x-auto" {...props} />,
-                        code: ({node, ...props}) => <code className="bg-gray-200 px-1 py-0.5 rounded text-xs" {...props} />
-                      }}
-                    >
-                      {message.content}
-                    </ReactMarkdown>
-                  </div>
+                  <>
+                    <div className="prose prose-sm max-w-none overflow-hidden">
+                      <ReactMarkdown 
+                        components={{
+                          h1: ({node, ...props}) => <h1 className="text-xl font-bold my-2" {...props} />,
+                          h2: ({node, ...props}) => <h2 className="text-lg font-bold my-4" {...props} />,
+                          h3: ({node, ...props}) => <h3 className="text-base font-bold my-1" {...props} />,
+                          p: ({node, ...props}) => <p className="text-sm leading-relaxed my-1" {...props} />,
+                          ul: ({node, ...props}) => <ul className="list-disc list-inside my-2" {...props} />,
+                          ol: ({node, ...props}) => <ol className="list-decimal list-inside my-2" {...props} />,
+                          li: ({node, ...props}) => <li className="text-sm" {...props} />,
+                          a: ({node, ...props}) => (
+                            <a 
+                              className="text-blue-600 hover:underline cursor-pointer" 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                window.open(props.href, '_blank', 'noopener,noreferrer');
+                              }}
+                              {...props} 
+                            />
+                          ),
+                          strong: ({node, ...props}) => <strong className="font-bold" {...props} />,
+                          pre: ({node, ...props}) => <pre className="bg-gray-200 p-2 rounded text-xs overflow-x-auto" {...props} />,
+                          code: ({node, ...props}) => <code className="bg-gray-200 px-1 py-0.5 rounded text-xs" {...props} />
+                        }}
+                      >
+                        {message.content}
+                      </ReactMarkdown>
+                    </div>
+                    
+                    {/* Système de notation - seulement si le message n'est pas en cours d'écriture */}
+                    {message.content !== "L'assistant Triptik est en train d'écrire..." && (
+                      <MessageRating
+                        messageId={message.id}
+                        currentRating={message.rating}
+                        onRatingChange={handleRatingChange}
+                        onFeedbackSubmit={handleFeedbackSubmit}
+                        className="mt-2"
+                      />
+                    )}
+                  </>
                 )}
               </div>
             </div>

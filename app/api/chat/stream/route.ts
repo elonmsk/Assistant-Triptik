@@ -189,13 +189,13 @@ export async function POST(req: Request) {
 
         // Helper function pour envoyer des données de manière sécurisée
         const safeEnqueue = (data: any) => {
-          if (!isControllerClosed) {
+          if (!isControllerClosed && controller) {
             try {
               controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
             } catch (error) {
               console.error("Erreur lors de l'envoi de données:", error);
               isControllerClosed = true;
-              throw error;
+              // Ne pas relancer l'erreur pour éviter de casser le flux
             }
           }
         };
@@ -399,11 +399,17 @@ async function callOpenAIStream(
       });
 
       enrichedResponse = enrichedResult.output_text || '';
-      safeEnqueue({ type: 'processing_step', step: 'generating', message: 'Génération de la réponse...', progress: 80 });
+      // Vérifier que le contrôleur est toujours ouvert avant d'envoyer des données
+      try {
+        safeEnqueue({ type: 'processing_step', step: 'generating', message: 'Génération de la réponse...', progress: 80 });
+      } catch (error) {
+        console.warn('Contrôleur fermé, impossible d\'envoyer l\'étape de génération');
+      }
       
     } catch (enrichedError) {
       console.warn('Erreur avec o4-mini, utilisation du modèle de fallback:', enrichedError);
       enrichedResponse = '';
+      // Ne pas appeler safeEnqueue ici car le contrôleur pourrait être fermé
     }
 
     // Si on a une réponse enrichie, on l'utilise pour le streaming

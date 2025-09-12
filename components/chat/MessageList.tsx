@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useChat, type Message } from '@/contexts/ChatContext'
 import ProcessingIndicator from './ProcessingIndicator'
+import { MessageRating } from './MessageRating'
 
 // Fonction pour formater le Markdown en HTML
 function formatMarkdown(text: string): string {
@@ -49,6 +50,7 @@ interface MessageListProps {
 
 export default function MessageList({ messages, isLoading = false, className = "" }: MessageListProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const { updateMessageRating, updateMessageFeedback, state } = useChat()
 
   // Auto-scroll vers le bas quand de nouveaux messages arrivent
   useEffect(() => {
@@ -61,6 +63,60 @@ export default function MessageList({ messages, isLoading = false, className = "
       hour: '2-digit', 
       minute: '2-digit' 
     })
+  }
+
+  const handleRatingChange = async (messageId: string, rating: 'like' | 'dislike' | null) => {
+    // Mettre à jour l'état local immédiatement
+    updateMessageRating(messageId, rating)
+    
+    // Sauvegarder en base de données
+    try {
+      const response = await fetch('/api/messages/rating', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messageId,
+          rating,
+          userNumero: state.userNumero,
+          userType: state.userType
+        })
+      })
+
+      if (!response.ok) {
+        console.error('Erreur lors de la sauvegarde de la notation')
+      }
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde de la notation:', error)
+    }
+  }
+
+  const handleFeedbackSubmit = async (messageId: string, feedback: string) => {
+    // Mettre à jour l'état local immédiatement
+    updateMessageFeedback(messageId, feedback)
+    
+    // Sauvegarder en base de données
+    try {
+      const response = await fetch('/api/messages/rating', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messageId,
+          feedback,
+          userNumero: state.userNumero,
+          userType: state.userType
+        })
+      })
+
+      if (!response.ok) {
+        console.error('Erreur lors de la sauvegarde du feedback')
+      }
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde du feedback:', error)
+    }
   }
 
   if (isLoading) {
@@ -136,6 +192,17 @@ export default function MessageList({ messages, isLoading = false, className = "
             <span className="text-xs text-gray-500 mt-1 px-1">
               {formatTime(message.created_at)}
             </span>
+            
+            {/* Système de notation - seulement pour les messages de l'assistant */}
+            {message.role === 'assistant' && (
+              <MessageRating
+                messageId={message.id}
+                currentRating={message.rating}
+                onRatingChange={handleRatingChange}
+                onFeedbackSubmit={handleFeedbackSubmit}
+                className="mt-2"
+              />
+            )}
           </div>
         </div>
       ))}

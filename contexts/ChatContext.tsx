@@ -9,6 +9,8 @@ interface Message {
   role: 'user' | 'assistant'
   content: string
   created_at: string
+  rating?: 'like' | 'dislike' | null
+  feedback?: string
 }
 
 interface Conversation {
@@ -83,6 +85,8 @@ type ChatAction =
   | { type: 'UPDATE_PROCESSING_STEP'; payload: { step: ProcessingStep; message: string; progress: number; category?: string } }
   | { type: 'RESET_PROCESSING_STATE' }
   | { type: 'UPDATE_MESSAGE_CONTENT'; payload: { messageId: string; content: string } }
+  | { type: 'UPDATE_MESSAGE_RATING'; payload: { messageId: string; rating: 'like' | 'dislike' | null } }
+  | { type: 'UPDATE_MESSAGE_FEEDBACK'; payload: { messageId: string; feedback: string } }
 
 // État initial
 const initialState: ChatState = {
@@ -231,6 +235,22 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         )
       }
     
+    case 'UPDATE_MESSAGE_RATING':
+      return {
+        ...state,
+        currentMessages: state.currentMessages.map(msg =>
+          msg.id === action.payload.messageId ? { ...msg, rating: action.payload.rating } : msg
+        )
+      }
+    
+    case 'UPDATE_MESSAGE_FEEDBACK':
+      return {
+        ...state,
+        currentMessages: state.currentMessages.map(msg =>
+          msg.id === action.payload.messageId ? { ...msg, feedback: action.payload.feedback } : msg
+        )
+      }
+    
     default:
       return state
   }
@@ -253,6 +273,10 @@ interface ChatContextType {
   setProcessingState: (state: ProcessingState) => void
   updateProcessingStep: (step: ProcessingStep, message: string, progress: number, category?: string) => void
   resetProcessingState: () => void
+  
+  // Actions de notation
+  updateMessageRating: (messageId: string, rating: 'like' | 'dislike' | null) => void
+  updateMessageFeedback: (messageId: string, feedback: string) => void
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined)
@@ -538,6 +562,15 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'SET_ERROR', payload: null })
   }, [])
 
+  // Actions de notation
+  const updateMessageRating = useCallback((messageId: string, rating: 'like' | 'dislike' | null) => {
+    dispatch({ type: 'UPDATE_MESSAGE_RATING', payload: { messageId, rating } })
+  }, [])
+
+  const updateMessageFeedback = useCallback((messageId: string, feedback: string) => {
+    dispatch({ type: 'UPDATE_MESSAGE_FEEDBACK', payload: { messageId, feedback } })
+  }, [])
+
   const contextValue: ChatContextType = {
     state,
     setUserInfo,
@@ -549,7 +582,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     clearError,
     setProcessingState: (state: ProcessingState) => dispatch({ type: 'SET_PROCESSING_STATE', payload: state }),
     updateProcessingStep: (step: ProcessingStep, message: string, progress: number, category?: string) => dispatch({ type: 'UPDATE_PROCESSING_STEP', payload: { step, message, progress, category } }),
-    resetProcessingState: () => dispatch({ type: 'RESET_PROCESSING_STATE' })
+    resetProcessingState: () => dispatch({ type: 'RESET_PROCESSING_STATE' }),
+    updateMessageRating,
+    updateMessageFeedback
   }
 
   return (
