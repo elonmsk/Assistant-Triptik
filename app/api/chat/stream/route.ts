@@ -141,6 +141,9 @@ Structure ta réponse avec ce formatage :
 - **Service** : [Nom du service] - [Téléphone/Email]
 
 **IMPORTANT : Tous les liens doivent être formatés en Markdown [Nom](URL) pour être cliquables. Utilise des émojis appropriés selon la catégorie et structure clairement l'information.**
+** QUESTION SUGÉGÉ:
+a la fin de chaque reponse tu creera la rubbrique question suggéré et proposera une question en rapport a la question de l'utilisateur. il faut que la question proposé sois comme si c'etait l'utilisateur qui la pose.
+
 `
 
 interface ChatRequest {

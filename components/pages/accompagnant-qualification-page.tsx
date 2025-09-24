@@ -1,11 +1,11 @@
 "use client"
-import { Menu, MoreVertical, Play } from "lucide-react"
+import { Menu, MoreVertical } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useRef, useEffect } from "react"
 import { ChatInput, SimpleChatDisplay } from "@/components/ui-custom"
-import { useChat } from '@/contexts/ChatContext'
-import ProcessingIndicator from '@/components/chat/ProcessingIndicator'
-import { generateStableId } from '@/lib/utils'
+import { useChat } from "@/contexts/ChatContext"
+import ProcessingIndicator from "@/components/chat/ProcessingIndicator"
+import { generateStableId } from "@/lib/utils"
 
 interface AccompagnantQualificationPageProps {
   category: string
@@ -19,7 +19,10 @@ interface QualificationStep {
   condition?: (answers: string[]) => boolean
 }
 
-export default function AccompagnantQualificationPage({ category, onBack }: AccompagnantQualificationPageProps) {
+export default function AccompagnantQualificationPage({
+  category,
+  onBack,
+}: AccompagnantQualificationPageProps) {
   const [currentStep, setCurrentStep] = useState(0)
   const [userAnswers, setUserAnswers] = useState<string[]>([])
   const [showInitialMessage, setShowInitialMessage] = useState(true)
@@ -30,12 +33,16 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
   const { state, setUserInfo } = useChat()
 
   useEffect(() => {
-    const numero = localStorage.getItem("uid") || localStorage.getItem("numero") || generateStableId('accompagnant')
-    setUserInfo(numero, 'accompagnant')
+    const numero =
+      localStorage.getItem("uid") ||
+      localStorage.getItem("numero") ||
+      generateStableId("accompagnant")
+    setUserInfo(numero, "accompagnant")
   }, [setUserInfo])
 
   const showChatMessages = state.currentMessages.length > 0
-  const showProcessingIndicator = state.processingState.currentStep !== 'idle' && !showChatMessages
+  const showProcessingIndicator =
+    state.processingState.currentStep !== "idle" && !showChatMessages
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -44,7 +51,8 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
   const getQualificationSteps = (categoryName: string): QualificationStep[] => {
     const commonSteps: QualificationStep[] = [
       {
-        question: "La personne a-t-elle déjà fait des démarches dans ce domaine ?",
+        question:
+          "La personne a-t-elle déjà fait des démarches dans ce domaine ?",
         answers: [
           { text: "Oui", emoji: "👍", value: "yes" },
           { text: "Non", emoji: "👎", value: "no" },
@@ -69,10 +77,7 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
           { text: "Femme", emoji: "👩", value: "female" },
         ],
       },
-      {
-        question: "Quel est l'âge de la personne ?",
-        type: "input"
-      },
+      { question: "Quel est l'âge de la personne ?", type: "input" },
       {
         question: "Quel est le niveau de français de la personne ?",
         answers: [
@@ -93,14 +98,8 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
           { text: "Autre", emoji: "🗣️", value: "other" },
         ],
       },
-      {
-        question: "Quelle est la ville de domiciliation de la personne ?",
-        type: "input"
-      },
-      {
-        question: "Quel est le département de domiciliation de la personne ?",
-        type: "input"
-      },
+      { question: "Quelle est la ville de domiciliation de la personne ?", type: "input" },
+      { question: "Quel est le département de domiciliation de la personne ?", type: "input" },
       {
         question: "La personne est-elle en situation de handicap ?",
         answers: [
@@ -118,7 +117,8 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
     const specificSteps: { [key: string]: QualificationStep[] } = {
       Santé: [
         {
-          question: "La personne a-t-elle une couverture sociale (Carte Sécu, CMU, AME) ?",
+          question:
+            "La personne a-t-elle une couverture sociale (Carte Sécu, CMU, AME) ?",
           answers: [
             { text: "Oui", emoji: "💳", value: "yes" },
             { text: "Non", emoji: "❌", value: "no" },
@@ -127,7 +127,8 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
       ],
       Emploi: [
         {
-          question: "La personne réside-t-elle en France depuis plus de 6 mois ou 5 ans ?",
+          question:
+            "La personne réside-t-elle en France depuis plus de 6 mois ou 5 ans ?",
           answers: [
             { text: "Plus de 6 mois", emoji: "🏠", value: "6_months" },
             { text: "Plus de 5 ans", emoji: "🏡", value: "5_years" },
@@ -177,16 +178,18 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
   const handleAnswer = (answer: string) => {
     const newAnswers = [...userAnswers, answer]
     setUserAnswers(newAnswers)
-    
-    // Sauvegarder les réponses de qualification dans localStorage
+
     const qualificationData = {
       category,
       answers: newAnswers,
       timestamp: Date.now(),
-      userType: 'accompagnant'
+      userType: "accompagnant",
     }
-    localStorage.setItem(`qualification_${category}_accompagnant`, JSON.stringify(qualificationData))
-    
+    localStorage.setItem(
+      `qualification_${category}_accompagnant`,
+      JSON.stringify(qualificationData)
+    )
+
     if (currentStep < qualificationSteps.length - 1) {
       setCurrentStep((prev) => prev + 1)
     } else {
@@ -198,16 +201,18 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
     if (!inputValue.trim()) return
     const newAnswers = [...userAnswers, inputValue.trim()]
     setUserAnswers(newAnswers)
-    
-    // Sauvegarder les réponses de qualification dans localStorage
+
     const qualificationData = {
       category,
       answers: newAnswers,
       timestamp: Date.now(),
-      userType: 'accompagnant'
+      userType: "accompagnant",
     }
-    localStorage.setItem(`qualification_${category}_accompagnant`, JSON.stringify(qualificationData))
-    
+    localStorage.setItem(
+      `qualification_${category}_accompagnant`,
+      JSON.stringify(qualificationData)
+    )
+
     handleAnswer(inputValue.trim())
     setInputValue("")
   }
@@ -218,10 +223,16 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
       messages.push(
         <div key="intro" className="mb-8">
           <div className="bg-[#f4f4f4] p-4 rounded-2xl rounded-tl-md max-w-[90%] mx-auto">
-            <p>Vous avez choisi : {category}. Nous allons poser quelques questions sur la personne accompagnée.</p>
+            <p>
+              Vous avez choisi : {category}. Nous allons poser quelques questions
+              sur la personne accompagnée.
+            </p>
           </div>
           <div className="flex justify-center mt-4">
-            <Button onClick={handleInitialAccept} className="bg-[#919191] text-white rounded-full px-6 py-2">
+            <Button
+              onClick={handleInitialAccept}
+              className="bg-[#919191] text-white rounded-full px-6 py-2"
+            >
               👍 D'accord
             </Button>
           </div>
@@ -231,14 +242,17 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
       for (let i = 0; i <= Math.min(currentStep, userAnswers.length - 1); i++) {
         const step = qualificationSteps[i]
         const answer = userAnswers[i]
-        const answerLabel = step.answers?.find(a => a.value === answer)
+        const answerLabel = step.answers?.find((a) => a.value === answer)
         messages.push(
           <div key={`q-${i}`} className="mb-4">
             <div className="bg-[#f4f4f4] p-4 rounded-2xl rounded-tl-md max-w-[90%]">
               <p>{step.question}</p>
             </div>
             <div className="flex justify-center mt-2">
-              <Button disabled className="bg-[#919191] text-white rounded-full px-4 py-2">
+              <Button
+                disabled
+                className="bg-[#919191] text-white rounded-full px-4 py-2"
+              >
                 {answerLabel ? `${answerLabel.emoji} ${answerLabel.text}` : answer}
               </Button>
             </div>
@@ -260,9 +274,18 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
                     type="text"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault()
+                        handleInputAnswer()
+                      }
+                    }}
                     className="px-4 py-2 border rounded-full flex-1"
                   />
-                  <Button onClick={handleInputAnswer} className="bg-[#919191] text-white rounded-full px-6 py-2">
+                  <Button
+                    onClick={handleInputAnswer}
+                    className="bg-[#919191] text-white rounded-full px-6 py-2"
+                  >
                     Valider
                   </Button>
                 </div>
@@ -293,7 +316,12 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
         <Button variant="ghost" size="icon" onClick={onBack}>
           <Menu className="w-6 h-6 text-gray-700" />
         </Button>
-        <img src="/images/emmaus-logo.png" className="h-20 w-auto" onClick={() => (window.location.href = "/")} alt="Emmaus Connect" />
+        <img
+          src="/images/emmaus-logo.png"
+          className="h-20 w-auto cursor-pointer"
+          onClick={() => (window.location.href = "/")}
+          alt="Emmaus Connect"
+        />
         <Button variant="ghost" size="icon">
           <MoreVertical className="w-6 h-6 text-gray-700" />
         </Button>
@@ -307,15 +335,17 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
           ) : (
             <>
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-sm">😊</div>
-                <span className="text-base font-medium text-[#414143]">Assistant Triptik</span>
+                <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-sm">
+                  😊
+                </div>
+                <span className="text-base font-medium text-[#414143]">
+                  Assistant Triptik
+                </span>
               </div>
               <div className="flex-1 overflow-y-auto">
-                <div className="space-y-4">
+                <div className="space-y-4 pb-28">
                   {renderMessages()}
-                  {state.currentMessages.length > 0 && (
-                    <SimpleChatDisplay />
-                  )}
+                  {state.currentMessages.length > 0 && <SimpleChatDisplay />}
                   <div ref={messagesEndRef} />
                 </div>
               </div>
@@ -337,7 +367,11 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
       )}
       <ChatInput
         theme={category}
-        placeholder={skipQualification ? `Posez votre question sur ${category}...` : "Répondez à la question ou posez votre propre question..."}
+        placeholder={
+          skipQualification
+            ? `Posez votre question sur ${category}...`
+            : "Répondez à la question ou posez votre propre question..."
+        }
         onSendMessage={(message: string) => {
           if (!skipQualification) {
             if (showInitialMessage) {
@@ -355,9 +389,10 @@ export default function AccompagnantQualificationPage({ category, onBack }: Acco
                 handleInputAnswer()
                 return true
               } else {
-                const matchingAnswer = current.answers?.find(a =>
-                  message.toLowerCase().includes(a.text.toLowerCase()) ||
-                  message.toLowerCase().includes(a.value.toLowerCase())
+                const matchingAnswer = current.answers?.find(
+                  (a) =>
+                    message.toLowerCase().includes(a.text.toLowerCase()) ||
+                    message.toLowerCase().includes(a.value.toLowerCase())
                 )
                 if (matchingAnswer) {
                   handleAnswer(matchingAnswer.value)

@@ -3,10 +3,15 @@ import { Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect, useMemo } from "react"
 import { SideMenu, ChatInput } from "@/components/ui-custom"
-import { CommunityPage, SearchHistoryPage, LanguagesPage, AccompagnantQualificationPage } from "@/components/pages"
-import { useChat } from '@/contexts/ChatContext'
-import SimpleChatDisplay from '@/components/ui-custom/simple-chat-display'
-import ProcessingIndicator from '@/components/chat/ProcessingIndicator'
+import {
+  CommunityPage,
+  SearchHistoryPage,
+  LanguagesPage,
+  AccompagnantQualificationPage,
+} from "@/components/pages"
+import { useChat } from "@/contexts/ChatContext"
+import SimpleChatDisplay from "@/components/ui-custom/simple-chat-display"
+import ProcessingIndicator from "@/components/chat/ProcessingIndicator"
 import { VersionBadge } from "@/components/ui/version-badge"
 
 export default function AccompagnantPage() {
@@ -18,8 +23,11 @@ export default function AccompagnantPage() {
   const { setUserInfo, state } = useChat()
 
   useEffect(() => {
-    const numero = localStorage.getItem("uid") || localStorage.getItem("numero") || (999000000 + Date.now()).toString()
-    setUserInfo(numero, 'accompagnant')
+    const numero =
+      localStorage.getItem("uid") ||
+      localStorage.getItem("numero") ||
+      (999000000 + Date.now()).toString()
+    setUserInfo(numero, "accompagnant")
   }, [setUserInfo])
 
   const handleCategoryClick = (categoryName: string) => {
@@ -35,8 +43,12 @@ export default function AccompagnantPage() {
   }
 
   const showChatMessages = state.currentMessages.length > 0
-  const showProcessingIndicator = state.processingState.currentStep !== 'idle' && !showChatMessages
-  const isChatOpen = useMemo(() => showChatMessages || showProcessingIndicator, [showChatMessages, showProcessingIndicator])
+  const showProcessingIndicator =
+    state.processingState.currentStep !== "idle" && !showChatMessages
+  const isChatOpen = useMemo(
+    () => showChatMessages || showProcessingIndicator,
+    [showChatMessages, showProcessingIndicator]
+  )
 
   if (showCommunity) {
     return <CommunityPage onBack={() => setShowCommunity(false)} />
@@ -51,23 +63,28 @@ export default function AccompagnantPage() {
   }
 
   if (selectedCategory) {
-    return <AccompagnantQualificationPage category={selectedCategory} onBack={handleBackFromQualification} />
+    return (
+      <AccompagnantQualificationPage
+        category={selectedCategory}
+        onBack={handleBackFromQualification}
+      />
+    )
   }
 
   const categories = [
-  { name: "Santé", icon: "🏥" },
-  { name: "Emploi", icon: "💼" },
-  { name: "Famille", icon: "👨‍👩‍👧‍👦" },
-  { name: "Formation en français", icon: "🇫🇷" },
-  { name: "Formation professionnelle", icon: "🎓" },
-  { name: "Logement", icon: "🏠" },
-  { name: "Éducation", icon: "📚" },
-  { name: "Juridique", icon: "⚖️" },
-  { name: "Transport", icon: "🚌" },
-  { name: "Démarche", icon: "📋" },
-  { name: "Culture", icon: "🖼️" },
-  { name: "Handicap", icon: "♿" },
-  { name: "Aide", icon: "💰" },
+    { name: "Santé", icon: "🏥" },
+    { name: "Emploi", icon: "💼" },
+    { name: "Famille", icon: "👨‍👩‍👧‍👦" },
+    { name: "Formation en français", icon: "🇫🇷" },
+    { name: "Formation professionnelle", icon: "🎓" },
+    { name: "Logement", icon: "🏠" },
+    { name: "Éducation", icon: "📚" },
+    { name: "Juridique", icon: "⚖️" },
+    { name: "Transport", icon: "🚌" },
+    { name: "Démarche", icon: "📋" },
+    { name: "Culture", icon: "🖼️" },
+    { name: "Handicap", icon: "♿" },
+    { name: "Aide", icon: "💰" },
   ]
 
   return (
@@ -103,7 +120,8 @@ export default function AccompagnantPage() {
                 Vous recherchez des informations pour aider les personnes réfugiées
               </p>
               <p className="text-base text-[#73726d] leading-relaxed">
-                Vous pouvez sélectionner une des thématiques ci-dessous ou poser directement votre question.
+                Vous pouvez sélectionner une des thématiques ci-dessous ou poser
+                directement votre question.
               </p>
             </div>
 
@@ -117,12 +135,12 @@ export default function AccompagnantPage() {
                     key={index}
                     variant="outline"
                     onClick={() => handleCategoryClick(category.name)}
-                    className="h-32 w-full max-w-[180px] mx-auto flex flex-col items-center justify-center gap-3 border-2 border-[#e7e7e7] bg-white hover:bg-gray-50 rounded-xl p-4"
+                    className="h-auto min-h-[8rem] w-full flex flex-col items-center justify-center gap-3 border-2 border-[#e7e7e7] bg-white hover:bg-gray-50 rounded-xl p-4"
                   >
                     <div className="w-16 h-16 bg-[#f8f8f8] rounded-full flex items-center justify-center">
                       <span className="text-2xl">{category.icon}</span>
                     </div>
-                    <span className="text-base font-medium text-[#000000] text-center leading-tight">
+                    <span className="text-sm font-medium text-[#000000] text-center leading-tight break-words whitespace-normal">
                       {category.name}
                     </span>
                   </Button>
@@ -152,8 +170,12 @@ export default function AccompagnantPage() {
               {showChatMessages && (
                 <div className="flex flex-col">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-sm">😊</div>
-                    <span className="text-base font-medium text-[#414143]">Assistant Triptik</span>
+                    <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-sm">
+                      😊
+                    </div>
+                    <span className="text-base font-medium text-[#414143]">
+                      Assistant Triptik
+                    </span>
                   </div>
                   <div className="chat-scroll max-h-[calc(100vh-260px)] sm:max-h-[70vh] overflow-y-auto pr-1 break-words overflow-x-hidden">
                     <SimpleChatDisplay />
@@ -162,7 +184,9 @@ export default function AccompagnantPage() {
               )}
               {/* État vide si jamais le chat est ouvert sans message */}
               {!showChatMessages && !showProcessingIndicator && (
-                <div className="text-center text-sm text-gray-500 py-10">Posez votre question en bas de l’écran.</div>
+                <div className="text-center text-sm text-gray-500 py-10">
+                  Posez votre question en bas de l’écran.
+                </div>
               )}
             </div>
           </section>

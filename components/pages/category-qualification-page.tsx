@@ -1,7 +1,7 @@
 "use client"
 import { Menu, MoreVertical, Play } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, KeyboardEvent } from "react"
 import { ChatInput, SimpleChatDisplay } from "@/components/ui-custom"
 import { useChat } from '@/contexts/ChatContext'
 import ProcessingIndicator from '@/components/chat/ProcessingIndicator'
@@ -25,31 +25,34 @@ export default function CategoryQualificationPage({
   onBack,
   isConnected = false
 }: CategoryQualificationPageProps) {
+  // États
   const [currentStep, setCurrentStep] = useState(0)
   const [userAnswers, setUserAnswers] = useState<string[]>([])
   const [showInitialMessage, setShowInitialMessage] = useState(true)
   const [inputValue, setInputValue] = useState<string>("")
   const [skipQualification, setSkipQualification] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-
   const { state, setUserInfo } = useChat()
 
+  // Initialisation
   useEffect(() => {
     const numero = localStorage.getItem("uid") || localStorage.getItem("numero") || generateStableId('guest')
     setUserInfo(numero, 'accompagne')
   }, [setUserInfo])
 
+  // Scroll automatique
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
-
   useEffect(() => {
     scrollToBottom()
   }, [currentStep, userAnswers, showInitialMessage])
 
+  // Affichage conditionnel
   const showChatMessages = state.currentMessages.length > 0
   const showProcessingIndicator = state.processingState.currentStep !== 'idle' && !showChatMessages
 
+  // Gestion des étapes de qualification
   const getQualificationSteps = (categoryName: string, isUserConnected: boolean): QualificationStep[] => {
     const commonSteps = [
       {
@@ -352,6 +355,7 @@ export default function CategoryQualificationPage({
 
   const qualificationSteps = getQualificationSteps(category, isConnected)
 
+  // Gestion des réponses
   const handleInitialAccept = () => {
     setShowInitialMessage(false)
   }
@@ -363,15 +367,12 @@ export default function CategoryQualificationPage({
   const handleAnswer = (answer: string) => {
     const newAnswers = [...userAnswers, answer]
     setUserAnswers(newAnswers)
-    
-    // Sauvegarder les réponses de qualification dans localStorage
     const qualificationData = {
       category,
       answers: newAnswers,
       timestamp: Date.now()
     }
     localStorage.setItem(`qualification_${category}`, JSON.stringify(qualificationData))
-    
     if (currentStep < qualificationSteps.length - 1) {
       setCurrentStep(currentStep + 1)
     } else {
@@ -383,19 +384,22 @@ export default function CategoryQualificationPage({
     const newAnswers = [...userAnswers, answer]
     setUserAnswers(newAnswers)
     setInputValue("")
-    
-    // Sauvegarder les réponses de qualification dans localStorage
     const qualificationData = {
       category,
       answers: newAnswers,
       timestamp: Date.now()
     }
     localStorage.setItem(`qualification_${category}`, JSON.stringify(qualificationData))
-    
     if (currentStep < qualificationSteps.length - 1) {
       setCurrentStep(currentStep + 1)
     } else {
       setCurrentStep(currentStep + 1)
+    }
+  }
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && inputValue.trim()) {
+      handleInputAnswer(inputValue)
     }
   }
 
@@ -413,6 +417,7 @@ export default function CategoryQualificationPage({
     return suggestions[categoryName as keyof typeof suggestions] || ["Obtenir de l'aide", "Poser une question", "Continuer"]
   }
 
+  // Rendu des messages
   const renderMessages = () => {
     const messages = []
     if (showInitialMessage) {
@@ -489,19 +494,15 @@ export default function CategoryQualificationPage({
               </Button>
             </div>
             {currentQuestion.type === "input" ? (
-              <div className="flex justify-center mt-4">
+              <div className="flex flex-col items-center mt-4 gap-4">
                 <input
                   type="text"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  className="bg-[#919191] hover:bg-gray-600 text-white px-6 py-2 rounded-full flex items-center gap-2"
+                  onKeyDown={handleKeyDown}
+                  className="bg-[#919191] hover:bg-gray-600 text-white px-6 py-2 rounded-full flex items-center gap-2 w-64"
+                  placeholder="Votre réponse..."
                 />
-                <Button
-                  onClick={() => handleInputAnswer(inputValue)}
-                  className="bg-[#919191] hover:bg-gray-600 text-white px-6 py-2 rounded-full flex items-center gap-2 ml-2"
-                >
-                  Valider
-                </Button>
               </div>
             ) : (
               <div className="flex justify-center mt-4 gap-2 flex-wrap">
@@ -606,6 +607,7 @@ export default function CategoryQualificationPage({
           </div>
         </div>
       )}
+      <div className="mb-4"></div>
       <ChatInput
         theme={category}
         placeholder={skipQualification ? `Posez votre question sur ${category}...` : "Répondez à la question ou posez votre propre question..."}
