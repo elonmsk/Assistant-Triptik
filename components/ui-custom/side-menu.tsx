@@ -40,7 +40,6 @@ export default function SideMenu({
     { icon: Diamond, label: "Communauté", color: "text-[#414143]", onClick: handleCommunityClick },
     { icon: FileText, label: "Recherches", color: "text-[#414143]", onClick: handleSearchHistoryClick },
     { icon: Calendar, label: "Rendez-vous", color: "text-[#414143]", onClick: () => {} },
-    { icon: Languages, label: "Langues", color: "text-[#414143]", onClick: handleLanguagesClick },
     { icon: LogOut, label: "Se déconnecter", color: "text-red-500", onClick: () => {} },
   ]
 
