@@ -28,7 +28,7 @@ export function VersionBadge({
         <>
           <span>V1</span>
           <span>•</span>
-          <span>28 Juillet</span>
+          <span>10 Octobre</span>
         </>
       ) : (
         <span>{versionText}</span>

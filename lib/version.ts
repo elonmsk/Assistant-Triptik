@@ -1,8 +1,8 @@
 // Configuration de la version de l'application
 export const APP_VERSION = {
   version: 'V1',
-  date: '28 Juillet',
-  full: 'V1 au 28 Juillet'
+  date: '10 Octobre',
+  full: 'V1 au 10 Octobre'
 }
 
 // Fonction utilitaire pour formater la version
