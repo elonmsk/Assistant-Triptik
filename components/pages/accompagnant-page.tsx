@@ -2,7 +2,7 @@
 import { Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect, useMemo } from "react"
-import { SideMenu, ChatInput } from "@/components/ui-custom"
+import { SideMenu, ChatInput, BackButton } from "@/components/ui-custom"
 import {
   CommunityPage,
   SearchHistoryPage,
@@ -40,6 +40,10 @@ export default function AccompagnantPage() {
 
   const handleSendMessage = (message: string) => {
     console.log("Message envoyé:", message)
+  }
+
+  const handleBackToHome = () => {
+    window.location.href = "/";
   }
 
   const showChatMessages = state.currentMessages.length > 0
@@ -91,9 +95,12 @@ export default function AccompagnantPage() {
     <div className="min-h-screen bg-white pb-24">
       {/* Header */}
       <header className="flex items-center justify-between py-3 px-6 border-b border-gray-200">
-        <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(true)}>
-          <Menu className="w-6 h-6 text-[#414143]" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <BackButton onClick={handleBackToHome} />
+          <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(true)}>
+            <Menu className="w-6 h-6 text-[#414143]" />
+          </Button>
+        </div>
         <div className="flex items-center gap-3">
           <img
             src="/images/emmaus-logo.png"

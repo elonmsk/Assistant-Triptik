@@ -11,9 +11,11 @@ import PremiereConnexion from "./premiere-connexion"; // 💡 import du composan
 export default function CreateAccountSimplePage({
   onLogin,
   onComplete,
+  onBack,
 }: {
   onLogin: () => void;
   onComplete?: () => void;
+  onBack?: () => void;
 }) {
   const [showSuccess, setShowSuccess] = useState(false);
   const [showPremiereConnexion, setShowPremiereConnexion] = useState(false); // 💡 nouveau state

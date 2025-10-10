@@ -9,7 +9,7 @@ import {
 import AuthPage from "@/components/pages/premiere-connexion";
 import CreateAccountSimplePage from "@/components/pages/create-account-simple-page";
 import CreateAccountPage from "@/components/pages/create-account-page";
-import { AccompagneSideMenu, ChatInput } from "@/components/ui-custom";
+import { AccompagneSideMenu, ChatInput, BackButton } from "@/components/ui-custom";
 import { Button } from "@/components/ui/button";
 import { Menu, User } from "lucide-react";
 import { useChat } from "@/contexts/ChatContext";
@@ -218,15 +218,22 @@ export default function AccompagnePage({
     // window.location.reload();
   };
 
+  const handleBackToHome = () => {
+    window.location.href = "/";
+  };
+
   // Header
   const renderHeader = () => (
     <header
       ref={headerRef}
       className="sticky top-0 z-50 flex items-center justify-between py-3 px-6 border-b border-gray-200 bg-white"
     >
-      <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(true)}>
-        <Menu className="w-6 h-6 text-[#414143]" />
-      </Button>
+      <div className="flex items-center gap-2">
+        <BackButton onClick={handleBackToHome} />
+        <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(true)}>
+          <Menu className="w-6 h-6 text-[#414143]" />
+        </Button>
+      </div>
       <div className="flex items-center gap-3">
         <img
           src="/images/emmaus-logo.png"

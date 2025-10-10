@@ -2,7 +2,7 @@
 import { Menu, MoreVertical, Play, Edit } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useRef, useEffect, KeyboardEvent, useCallback } from "react"
-import { ChatInput, SimpleChatDisplay } from "@/components/ui-custom"
+import { ChatInput, SimpleChatDisplay, BackButton } from "@/components/ui-custom"
 import { useChat } from '@/contexts/ChatContext'
 import ProcessingIndicator from '@/components/chat/ProcessingIndicator'
 import { generateStableId } from '@/lib/utils'
@@ -854,9 +854,7 @@ export default function CategoryQualificationPage({
     <div className="min-h-screen bg-[#ffffff] flex flex-col pb-24">
       <header className="flex items-center justify-between py-3 px-6 border-b border-gray-200">
         <div className="flex gap-2 items-center">
-          <Button variant="ghost" size="icon" onClick={onBack}>
-            <Menu className="w-6 h-6 text-[#414143]" />
-          </Button>
+          <BackButton onClick={onBack} />
           {!showInitialMessage && (
             <Button
               onClick={() => setShowAnswers((prev) => !prev)}

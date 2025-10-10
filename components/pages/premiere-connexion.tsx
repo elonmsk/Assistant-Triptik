@@ -10,12 +10,18 @@ interface AuthPageProps {
   selectedTheme?: string | null;
   showTheme?: boolean;
   onContinuerSansConnexion?: () => void;
+  onBack?: () => void;
+  onSeConnecter?: () => void;
+  onCreerCompte?: () => void;
 }
 
 export default function AuthPage({
   selectedTheme,
   showTheme = true,
   onContinuerSansConnexion,
+  onBack,
+  onSeConnecter,
+  onCreerCompte,
 }: AuthPageProps) {
   const [currentView, setCurrentView] = useState<"auth" | "createAccount" | "createSimpleAccount" | "premiereConnexion">("auth");
 
