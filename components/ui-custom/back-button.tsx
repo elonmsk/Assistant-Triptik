@@ -9,6 +9,7 @@ interface BackButtonProps {
   variant?: "default" | "ghost" | "outline"
   size?: "sm" | "default" | "lg"
   showHome?: boolean
+  label?: string
   className?: string
   children?: React.ReactNode
 }
@@ -18,6 +19,7 @@ export default function BackButton({
   variant = "ghost",
   size = "default",
   showHome = false,
+  label,
   className,
   children
 }: BackButtonProps) {
@@ -32,10 +34,21 @@ export default function BackButton({
           "hover:bg-gray-100 active:scale-95",
           className
         )}
-        aria-label="Retour"
+        aria-label={label ? `Retour ${label.toLowerCase()}` : "Retour"}
       >
         <ArrowLeft className="w-5 h-5" />
       </Button>
+
+      {label && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onClick}
+          className="h-9 px-2 text-sm text-gray-700 hover:text-gray-900"
+        >
+          {label}
+        </Button>
+      )}
       
       {showHome && (
         <Button

@@ -113,8 +113,8 @@ Structure ta réponse avec ce formatage :
 - [Conseil 3]
 
 ## 📞 Contacts utiles
-- **Service** : [Nom du service] - [Téléphone/Email]
-- **Service** : [Nom du service] - [Téléphone/Email]
+- **Service** : [Nom du service] — **Adresse** : [Adresse complète] — **Horaires** : [Jours + heures] — **Contact** : [Téléphone / Email]
+- **Service** : [Nom du service] — **Adresse** : [Adresse complète] — **Horaires** : [Jours + heures] — **Contact** : [Téléphone / Email]
 
 **IMPORTANT : Tous les liens doivent être formatés en Markdown [Nom](URL) pour être cliquables. Utilise des émojis appropriés selon la catégorie et structure clairement l'information.**
 `
@@ -178,14 +178,87 @@ export async function POST(req: Request) {
 function formatResponse(response: string): string {
   let formatted = response;
 
-  // Si déjà en Markdown, retourner tel quel
-  if (formatted.includes('# ') || formatted.includes('## ') || formatted.includes('### ')) {
-    return formatted.trim();
+  const ensureCerfaLinks = (md: string): string => {
+    if (/^##\s+.*formulaires?/im.test(md)) return md.trim()
+
+    const cerfaRegex = /\bcerfa\b(?:\s*(?:n[°ºo]\.?\s*)?)?(\d{4}\*?\d{2}|\d{5}|\d{6})?/gi
+    const numbers = new Set<string>()
+    let sawCerfa = false
+
+    for (const m of md.matchAll(cerfaRegex)) {
+      sawCerfa = true
+      const num = m[1]
+      if (num) numbers.add(num)
+    }
+
+    if (!sawCerfa) return md.trim()
+
+    const base = "https://www.service-public.fr/particuliers/recherche?query="
+    const links =
+      numbers.size > 0
+        ? Array.from(numbers).map(
+            (n) => `- [Formulaire CERFA ${n} (Service-Public)](${base}${encodeURIComponent(`cerfa ${n}`)})`
+          )
+        : [`- [Rechercher un formulaire CERFA (Service-Public)](${base}${encodeURIComponent("cerfa")})`]
+
+    return `${md.trim()}\n\n## 🧾 Formulaires (CERFA)\n${links.join("\n")}`.trim()
   }
 
+  const ensureSitesConsultesAtEnd = (md: string): string => {
+    const lines = md.replace(/\r\n/g, "\n").split("\n")
+    const isSitesHeading = (line: string) => {
+      const t = line.trim()
+      if (!/^##\s+/i.test(t)) return false
+      const rest = t.replace(/^##\s+/i, "").trim()
+      return /^(?:🔗\s*)?(?:sites?\s+consult[ée]s|sources?(?:\s+consult[ée]es)?|références?)\b/i.test(rest)
+    }
+
+    const sections: { start: number; end: number }[] = []
+    for (let i = 0; i < lines.length; i++) {
+      if (!isSitesHeading(lines[i])) continue
+      let end = lines.length
+      for (let j = i + 1; j < lines.length; j++) {
+        const l = lines[j].trim()
+        if (/^#{1,2}\s+/.test(l)) {
+          end = j
+          break
+        }
+      }
+      sections.push({ start: i, end })
+      i = end - 1
+    }
+
+    if (sections.length === 0) return md.trim()
+
+    const collected: string[] = []
+    const toRemove = new Set<number>()
+    for (const s of sections) {
+      for (let i = s.start; i < s.end; i++) {
+        toRemove.add(i)
+        if (i === s.start) continue
+        collected.push(lines[i])
+      }
+      collected.push("")
+    }
+
+    const remaining = lines.filter((_, idx) => !toRemove.has(idx)).join("\n").trim()
+    const sitesContent = collected.join("\n").trim()
+    const normalizedSites = `## 🔗 Sites consultés\n${sitesContent}`.trim()
+
+    if (!remaining) return normalizedSites
+    return `${remaining}\n\n${normalizedSites}`.trim()
+  }
+
+  const seemsMarkdown = formatted.includes('# ') || formatted.includes('## ') || formatted.includes('### ')
+
   // Formatage basique
-  formatted = formatted.replace(/([🏥🖥️📱💻])\s*([^:\n]+)\s*:\s*([^\n]*)/g, '\n\n# $1 $2\n\n$3\n\n');
-  formatted = formatted.replace(/([📋📝⚠️🆘💡📚⏱️])\s*([^:\n]+)\s*:/g, '\n\n## $1 $2\n\n');
+  if (!seemsMarkdown) {
+    formatted = formatted.replace(/([🏥🖥️📱💻])\s*([^:\n]+)\s*:\s*([^\n]*)/g, '\n\n# $1 $2\n\n$3\n\n');
+    formatted = formatted.replace(/([📋📝⚠️🆘💡📚⏱️])\s*([^:\n]+)\s*:/g, '\n\n## $1 $2\n\n');
+  }
+
+  formatted = ensureCerfaLinks(formatted);
+  formatted = ensureSitesConsultesAtEnd(formatted);
 
   return formatted.trim();
 } 

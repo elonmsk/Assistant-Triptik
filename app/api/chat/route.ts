@@ -96,19 +96,19 @@ Tu dois analyser la question de l'utilisateur et déterminer la catégorie princ
 - Ne jamais utiliser d'autres sources
 - Si la question concerne plusieurs catégories, choisis la plus pertinente
 - Fournis des informations précises et actualisées depuis ces sites officiels
+- Dès que tu mentionnes un **formulaire** ou un **CERFA** (ex: "CERFA n°12345*01"), tu dois fournir **immédiatement un lien cliquable** vers le formulaire (ou, à défaut, un lien vers la recherche officielle Service-Public).
 
 **FORMATAGE MARKDOWN OBLIGATOIRE :**
 Structure ta réponse avec ce formatage :
 
 # 🏠 [Catégorie] - [Titre de la réponse]
 
+## ✅ Synthèse (réponse courte)
+- **Réponse courte** : Oui / Non / Ça dépend (avec la condition principale en 1 phrase)
+- **À retenir** : 3 à 5 puces maximum
+
 ## 📋 Informations principales
 [Informations essentielles trouvées sur les sites officiels]
-
-## 🔗 Sites consultés
-- [Watizat - Guides PDF](https://watizat.org/) - Site de référence avec guides pratiques
-- [Nom du site](URL) - Format obligatoire pour tous les liens
-- [Nom du site](URL) - Tous les liens doivent être cliquables
 
 ## 📝 Étapes à suivre
 1. **Première étape** : [Description]
@@ -124,8 +124,15 @@ Structure ta réponse avec ce formatage :
 - [Conseil 3]
 
 ## 📞 Contacts utiles
-- **Service** : [Nom du service] - [Téléphone/Email]
-- **Service** : [Nom du service] - [Téléphone/Email]
+- **Service** : [Nom du service] — **Adresse** : [Adresse complète] — **Horaires** : [Jours + heures] — **Contact** : [Téléphone / Email]
+- **Service** : [Nom du service] — **Adresse** : [Adresse complète] — **Horaires** : [Jours + heures] — **Contact** : [Téléphone / Email]
+
+## 🔗 Sites consultés
+- [Watizat - Guides PDF](https://watizat.org/) - Site de référence avec guides pratiques
+- [Nom du site](URL) - Format obligatoire pour tous les liens
+- [Nom du site](URL) - Tous les liens doivent être cliquables
+
+RÈGLE : La section "Sites consultés" doit être la DERNIÈRE section de la réponse.
 
 **IMPORTANT : Tous les liens doivent être formatés en Markdown [Nom](URL) pour être cliquables. Utilise des émojis appropriés selon la catégorie et structure clairement l'information.**
 `
@@ -262,28 +269,98 @@ async function callOpenAI({ systemContext, messages, userMessage }: {
 function formatResponse(response: string): string {
   let formatted = response;
 
-  // Si déjà en Markdown, retourner tel quel
-  if (formatted.includes('# ') || formatted.includes('## ') || formatted.includes('### ')) {
-    return formatted.trim();
+  const ensureCerfaLinks = (md: string): string => {
+    if (/^##\s+.*formulaires?/im.test(md)) return md.trim()
+
+    const cerfaRegex = /\bcerfa\b(?:\s*(?:n[°ºo]\.?\s*)?)?(\d{4}\*?\d{2}|\d{5}|\d{6})?/gi
+    const numbers = new Set<string>()
+    let sawCerfa = false
+
+    for (const m of md.matchAll(cerfaRegex)) {
+      sawCerfa = true
+      const num = m[1]
+      if (num) numbers.add(num)
+    }
+
+    if (!sawCerfa) return md.trim()
+
+    const base = "https://www.service-public.fr/particuliers/recherche?query="
+    const links =
+      numbers.size > 0
+        ? Array.from(numbers).map(
+            (n) => `- [Formulaire CERFA ${n} (Service-Public)](${base}${encodeURIComponent(`cerfa ${n}`)})`
+          )
+        : [`- [Rechercher un formulaire CERFA (Service-Public)](${base}${encodeURIComponent("cerfa")})`]
+
+    return `${md.trim()}\n\n## 🧾 Formulaires (CERFA)\n${links.join("\n")}`.trim()
   }
 
-  // Étape 1: Formatage des Sections Principales avec Émojis (Niveau 1)
-  formatted = formatted.replace(/([🏥🖥️📱💻])\s*([^:\n]+)\s*:\s*([^\n]*)/g, '\n\n# $1 $2\n\n$3\n\n');
+  const ensureSitesConsultesAtEnd = (md: string): string => {
+    const lines = md.replace(/\r\n/g, "\n").split("\n")
+    const isSitesHeading = (line: string) => {
+      const t = line.trim()
+      if (!/^##\s+/i.test(t)) return false
+      const rest = t.replace(/^##\s+/i, "").trim()
+      return /^(?:🔗\s*)?(?:sites?\s+consult[ée]s|sources?(?:\s+consult[ée]es)?|références?)\b/i.test(rest)
+    }
 
-  // Étape 2: Formatage des Sous-Sections avec Émojis (Niveau 2)
-  formatted = formatted.replace(/([📋📝⚠️🆘💡📚⏱️])\s*([^:\n]+)\s*:/g, '\n\n## $1 $2\n\n');
+    const sections: { start: number; end: number }[] = []
+    for (let i = 0; i < lines.length; i++) {
+      if (!isSitesHeading(lines[i])) continue
+      let end = lines.length
+      for (let j = i + 1; j < lines.length; j++) {
+        const l = lines[j].trim()
+        if (/^#{1,2}\s+/.test(l)) {
+          end = j
+          break
+        }
+      }
+      sections.push({ start: i, end })
+      i = end - 1
+    }
 
-  // Étape 3: Formatage des Étapes Numérotées (Version en Gras - Niveau 3)
-  formatted = formatted.replace(/(\d+)\.\s*\*\*([^*]+)\*\*\s*:/g, '\n\n### $1. $2\n\n');
+    if (sections.length === 0) return md.trim()
 
-  // Étape 4: Formatage des Étapes Numérotées (Version Simple - Niveau 3)
-  formatted = formatted.replace(/(\d+)\.\s*([^:\n]+):/g, '\n\n### $1. $2\n\n');
+    const collected: string[] = []
+    const toRemove = new Set<number>()
+    for (const s of sections) {
+      for (let i = s.start; i < s.end; i++) {
+        toRemove.add(i)
+        if (i === s.start) continue
+        collected.push(lines[i])
+      }
+      collected.push("")
+    }
 
-  // Étape 5: Formatage des Listes à Puces avec Sous-Titres
-  formatted = formatted.replace(/^[\s]*-\s*([^:\n]+):\s*([^\n]*)/gm, '- **$1**: $2');
+    const remaining = lines.filter((_, idx) => !toRemove.has(idx)).join("\n").trim()
+    const sitesContent = collected.join("\n").trim()
+    const normalizedSites = `## 🔗 Sites consultés\n${sitesContent}`.trim()
 
-  // Étape 6: Formatage des Listes à Puces Simples
-  formatted = formatted.replace(/^[\s]*-\s*/gm, '- ');
+    if (!remaining) return normalizedSites
+    return `${remaining}\n\n${normalizedSites}`.trim()
+  }
+
+  const seemsMarkdown = formatted.includes('# ') || formatted.includes('## ') || formatted.includes('### ')
+
+  if (!seemsMarkdown) {
+    // Étape 1: Formatage des Sections Principales avec Émojis (Niveau 1)
+    formatted = formatted.replace(/([🏥🖥️📱💻])\s*([^:\n]+)\s*:\s*([^\n]*)/g, '\n\n# $1 $2\n\n$3\n\n');
+
+    // Étape 2: Formatage des Sous-Sections avec Émojis (Niveau 2)
+    formatted = formatted.replace(/([📋📝⚠️🆘💡📚⏱️])\s*([^:\n]+)\s*:/g, '\n\n## $1 $2\n\n');
+
+    // Étape 3: Formatage des Étapes Numérotées (Version en Gras - Niveau 3)
+    formatted = formatted.replace(/(\d+)\.\s*\*\*([^*]+)\*\*\s*:/g, '\n\n### $1. $2\n\n');
+
+    // Étape 4: Formatage des Étapes Numérotées (Version Simple - Niveau 3)
+    formatted = formatted.replace(/(\d+)\.\s*([^:\n]+):/g, '\n\n### $1. $2\n\n');
+
+    // Étape 5: Formatage des Listes à Puces avec Sous-Titres
+    formatted = formatted.replace(/^[\s]*-\s*([^:\n]+):\s*([^\n]*)/gm, '- **$1**: $2');
+
+    // Étape 6: Formatage des Listes à Puces Simples
+    formatted = formatted.replace(/^[\s]*-\s*/gm, '- ');
+  }
 
   // Étape 7: Correction des Liens Markdown
   formatted = formatted.replace(/\[([^\]]+)\]\s*\(\s*([^)]+)\s*\)/g, '[$1]($2)');
@@ -299,6 +376,12 @@ function formatResponse(response: string): string {
 
   // Étape 11: Espacement des Paragraphes
   formatted = formatted.replace(/([.!?])\s*\n\s*([A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞ])/g, '$1\n\n$2');
+
+  // Ajouter systématiquement un lien vers les CERFA si mentionnés
+  formatted = ensureCerfaLinks(formatted);
+
+  // Déplacer systématiquement "Sites consultés" en fin de réponse
+  formatted = ensureSitesConsultesAtEnd(formatted);
 
   return formatted.trim();
 }
@@ -332,8 +415,8 @@ Pour faire une demande de logement social, vous devez vous adresser aux services
 - Suivez régulièrement l'avancement de votre demande
 
 ## 📞 Contacts utiles
-- **Action Logement** : 01 40 05 50 50
-- **Service Public** : 3939 (numéro gratuit)`;
+- **Action Logement** — **Adresse** : voir la page “Agences” sur [Action Logement](https://www.actionlogement.fr/) — **Horaires** : variables (à vérifier sur le site) — **Contact** : 01 40 05 50 50
+- **Service Public** — **Adresse** : — **Horaires** : lun-ven (variable selon le service) — **Contact** : 3939`;
   }
   
   // Santé
@@ -360,8 +443,8 @@ L'Assurance Maladie gère la couverture santé de tous les résidents en France.
 - Consultez votre médecin traitant régulièrement
 
 ## 📞 Contacts utiles
-- **CPAM** : 3646 (numéro gratuit)
-- **Urgences** : 15 (SAMU)`;
+- **CPAM** — **Adresse** : agence CPAM de votre département (à trouver sur [ameli.fr](https://www.assurance-maladie.ameli.fr/)) — **Horaires** : variables (à vérifier sur le site) — **Contact** : 3646
+- **Urgences (SAMU)** — **Adresse** : — **Horaires** : 24h/24 — **Contact** : 15`;
   }
   
   // Emploi
@@ -391,8 +474,8 @@ France Travail et les missions locales accompagnent les demandeurs d'emploi et l
 - Maintenez une recherche active
 
 ## 📞 Contacts utiles
-- **France Travail** : 3949 (numéro gratuit)
-- **Mission Locale** : Consultez l'annuaire en ligne`;
+- **France Travail** — **Adresse** : agence la plus proche (via [France Travail](https://www.francetravail.fr/accueil/)) — **Horaires** : variables (à vérifier sur le site) — **Contact** : 3949
+- **Mission Locale** — **Adresse** : mission locale la plus proche (annuaire en ligne) — **Horaires** : variables — **Contact** : via l'annuaire`;
   }
   
   // Éducation
@@ -422,8 +505,8 @@ Plusieurs organismes gèrent l'éducation et la reconnaissance des diplômes en 
 - Renseignez-vous sur les équivalences
 
 ## 📞 Contacts utiles
-- **ENIC-NARIC** : 01 45 07 60 00
-- **Parcoursup** : Support en ligne`;
+- **ENIC-NARIC** — **Adresse** : voir la page contact ENIC-NARIC — **Horaires** : voir la page contact — **Contact** : 01 45 07 60 00
+- **Parcoursup** — **Adresse** : support en ligne — **Horaires** : 24h/24 (formulaire en ligne) — **Contact** : support en ligne`;
   }
   
   // Transport

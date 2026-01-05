@@ -303,7 +303,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       )
 
       if (!response.ok) {
-        throw new Error('Erreur lors du chargement des conversations')
+        // Essayer de remonter l'erreur API (plus explicite que le message générique)
+        let apiError: string | undefined
+        try {
+          const body = await response.json()
+          apiError = typeof body?.error === 'string' ? body.error : undefined
+        } catch {}
+        throw new Error(apiError || 'Erreur lors du chargement des conversations')
       }
 
       const data = await response.json()

@@ -30,7 +30,7 @@ export default function AccompagnantQualificationPage({
   onBack,
 }: AccompagnantQualificationPageProps) {
   const [currentStep, setCurrentStep] = useState(0);
-  const [userAnswers, setUserAnswers] = useState<string[]>(Array(9).fill(""));
+  const [userAnswers, setUserAnswers] = useState<string[]>(Array(8).fill(""));
   const [showInitialMessage, setShowInitialMessage] = useState(true);
   const [inputValue, setInputValue] = useState("");
   const [skipQualification, setSkipQualification] = useState(false);
@@ -195,6 +195,10 @@ export default function AccompagnantQualificationPage({
       question: "Combien d'enfants a-t-elle ?",
       type: "input",
     },
+    {
+      question: "Combien d'enfants habitent avec elle ?",
+      type: "input",
+    },
   ];
 
   const handleInitialAccept = () => setShowInitialMessage(false);
@@ -328,7 +332,7 @@ export default function AccompagnantQualificationPage({
               onClick={handleInitialAccept}
               className="bg-[#919191] text-white rounded-full px-6 py-2"
             >
-              👍 D'accord
+              J’ai compris, commencer le questionnaire
             </Button>
           </div>
         </div>
@@ -759,8 +763,11 @@ export default function AccompagnantQualificationPage({
       )}
       <ChatInput
         theme={category}
+        disabled={showInitialMessage}
         placeholder={
-          skipQualification || isQuestionnaireFinished
+          showInitialMessage
+            ? "Cliquez sur « D'accord, commencer » pour lancer le questionnaire."
+            : skipQualification || isQuestionnaireFinished
             ? `Posez votre question sur ${category}...`
             : "Répondez à la question ou posez votre propre question..."
         }
@@ -770,10 +777,9 @@ export default function AccompagnantQualificationPage({
               if (message.toLowerCase().includes("d'accord")) {
                 handleInitialAccept();
                 return true;
-              } else if (message.trim()) {
-                setSkipQualification(true);
-                return false;
               }
+              // Tant que l'intro n'est pas validée, on ne laisse pas partir un message
+              return true;
             } else if (currentStep < qualificationSteps.length) {
               const current = qualificationSteps[currentStep];
               if (current.type === "input") {

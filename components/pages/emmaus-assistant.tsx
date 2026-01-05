@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { AccompagnePage, AccompagnantPage } from "@/components/pages"
 import { VersionBadge } from "@/components/ui/version-badge"
+import { ConfidentialiteNoPiiCallout } from "@/components/ui-custom"
 
 export default function Component() {
   const [currentPage, setCurrentPage] = useState<"home" | "accompagne" | "accompagnant">("home")
@@ -58,6 +59,9 @@ export default function Component() {
           <p className="text-[#73726d] mb-8">Choisissez votre parcours</p>
 
           <div className="space-y-4 max-w-md mx-auto">
+            <div className="text-left">
+              <ConfidentialiteNoPiiCallout />
+            </div>
             <Button
               onClick={() => setCurrentPage("accompagnant")}
               className="w-full bg-[#000000] hover:bg-[#1c1c1c] text-white py-3 text-base rounded-lg"

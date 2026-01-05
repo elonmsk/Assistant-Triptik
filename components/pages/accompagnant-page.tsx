@@ -2,7 +2,12 @@
 import { Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect, useMemo } from "react"
-import { SideMenu, ChatInput, BackButton } from "@/components/ui-custom"
+import {
+  SideMenu,
+  ChatInput,
+  BackButton,
+  ThematiqueOuQuestionCallout,
+} from "@/components/ui-custom"
 import {
   CommunityPage,
   SearchHistoryPage,
@@ -15,6 +20,7 @@ import ProcessingIndicator from "@/components/chat/ProcessingIndicator"
 import { VersionBadge } from "@/components/ui/version-badge"
 
 export default function AccompagnantPage() {
+  const SHOW_MENU = false
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [showCommunity, setShowCommunity] = useState(false)
   const [showSearchHistory, setShowSearchHistory] = useState(false)
@@ -96,10 +102,12 @@ export default function AccompagnantPage() {
       {/* Header */}
       <header className="flex items-center justify-between py-3 px-6 border-b border-gray-200">
         <div className="flex items-center gap-2">
-          <BackButton onClick={handleBackToHome} />
-          <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(true)}>
-            <Menu className="w-6 h-6 text-[#414143]" />
-          </Button>
+          <BackButton onClick={handleBackToHome} label="Accueil" />
+          {SHOW_MENU && (
+            <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(true)}>
+              <Menu className="w-6 h-6 text-[#414143]" />
+            </Button>
+          )}
         </div>
         <div className="flex items-center gap-3">
           <img
@@ -126,10 +134,11 @@ export default function AccompagnantPage() {
               <p className="text-base text-[#73726d] leading-relaxed mb-2">
                 Vous recherchez des informations pour aider les personnes réfugiées
               </p>
-              <p className="text-base text-[#73726d] leading-relaxed">
-                Vous pouvez sélectionner une des thématiques ci-dessous ou poser
-                directement votre question.
-              </p>
+              <div className="mt-4 flex justify-center">
+                <div className="w-full max-w-2xl text-left">
+                  <ThematiqueOuQuestionCallout />
+                </div>
+              </div>
             </div>
 
             <div className="mb-12">
@@ -176,14 +185,6 @@ export default function AccompagnantPage() {
               {/* Messages du chat */}
               {showChatMessages && (
                 <div className="flex flex-col">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-sm">
-                      😊
-                    </div>
-                    <span className="text-base font-medium text-[#414143]">
-                      Assistant Triptik
-                    </span>
-                  </div>
                   <div className="chat-scroll max-h-[calc(100vh-260px)] sm:max-h-[70vh] overflow-y-auto pr-1 break-words overflow-x-hidden">
                     <SimpleChatDisplay />
                   </div>

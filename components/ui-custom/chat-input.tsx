@@ -12,6 +12,7 @@ interface ChatInputProps {
   onSendMessage?: (message: string) => void
   onMessageSent?: () => void
   className?: string
+  disabled?: boolean
 }
 
 export default function ChatInput({ 
@@ -19,13 +20,17 @@ export default function ChatInput({
   theme,
   onSendMessage,
   onMessageSent,
-  className = ""
+  className = "",
+  disabled = false
 }: ChatInputProps) {
   const [message, setMessage] = useState("")
   const { state, sendMessage } = useChat()
-  const { isSendingMessage, error } = state
+  const { isSendingMessage } = state
+
+  const inputDisabled = disabled || isSendingMessage
 
   const handleSend = async () => {
+    if (inputDisabled) return
     if (message.trim()) {
       const messageToSend = message.trim()
       setMessage("")
@@ -56,21 +61,10 @@ export default function ChatInput({
     }
   }
 
-  const isDisabled = isSendingMessage || !message.trim()
+  const isDisabled = inputDisabled || !message.trim()
 
   return (
     <div className={`fixed bottom-0 left-0 right-0 bg-white z-40 ${className}`}>
-      {/* Affichage d'erreur si nécessaire */}
-      {error && (
-        <div className="bg-red-50 border-t border-red-200 p-2">
-          <div className="max-w-2xl mx-auto">
-            <p className="text-sm text-red-600 text-center">
-              {error}
-            </p>
-          </div>
-        </div>
-      )}
-      
       <div className="flex justify-center">
         <div className="w-full max-w-2xl p-6">
           <div className="relative">
@@ -78,8 +72,8 @@ export default function ChatInput({
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder={isSendingMessage ? "L'assistant écrit..." : placeholder}
-              disabled={isSendingMessage}
+              placeholder={inputDisabled ? "Veuillez patienter..." : placeholder}
+              disabled={inputDisabled}
               className="w-full py-6 px-6 pr-24 text-base border-0 rounded-full bg-[#f5f5f5] text-[#414143] placeholder:text-[#a3a3a3] min-h-[60px] disabled:opacity-70"
             />
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
@@ -87,7 +81,7 @@ export default function ChatInput({
                 variant="ghost" 
                 size="icon" 
                 className="rounded-full w-10 h-10"
-                disabled={isSendingMessage}
+                disabled={inputDisabled}
               >
                 <Mic className="w-5 h-5 text-[#a3a3a3]" />
               </Button>

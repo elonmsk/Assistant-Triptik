@@ -9,7 +9,12 @@ import {
 import AuthPage from "@/components/pages/premiere-connexion";
 import CreateAccountSimplePage from "@/components/pages/create-account-simple-page";
 import CreateAccountPage from "@/components/pages/create-account-page";
-import { AccompagneSideMenu, ChatInput, BackButton } from "@/components/ui-custom";
+import {
+  AccompagneSideMenu,
+  ChatInput,
+  BackButton,
+  ThematiqueOuQuestionCallout,
+} from "@/components/ui-custom";
 import { Button } from "@/components/ui/button";
 import { Menu, User } from "lucide-react";
 import { useChat } from "@/contexts/ChatContext";
@@ -33,6 +38,7 @@ export default function AccompagnePage({
   isLoggedIn: propIsLoggedIn,
   initialCategory,
 }: AccompagnePageProps = {}) {
+  const SHOW_MENU = false;
   // États
   const [showCreateAccount, setShowCreateAccount] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -229,10 +235,12 @@ export default function AccompagnePage({
       className="sticky top-0 z-50 flex items-center justify-between py-3 px-6 border-b border-gray-200 bg-white"
     >
       <div className="flex items-center gap-2">
-        <BackButton onClick={handleBackToHome} />
-        <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(true)}>
-          <Menu className="w-6 h-6 text-[#414143]" />
-        </Button>
+        <BackButton onClick={handleBackToHome} label="Accueil" />
+        {SHOW_MENU && (
+          <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(true)}>
+            <Menu className="w-6 h-6 text-[#414143]" />
+          </Button>
+        )}
       </div>
       <div className="flex items-center gap-3">
         <img
@@ -319,11 +327,16 @@ export default function AccompagnePage({
               ? `Bonjour ${numeroUnique} ! Comment puis-je vous aider ?`
               : "Triptik à votre service"}
           </h1>
-          <p className="text-base text-[#73726d]">
-            {isLoggedIn
-              ? "Votre profil est maintenant configuré. Posez-moi vos questions ou choisissez une thématique."
-              : "Vous pouvez sélectionner une des thématiques ci-dessous ou poser directement une question"}
-          </p>
+          {isLoggedIn && (
+            <p className="text-base text-[#73726d]">
+              Votre profil est maintenant configuré. Posez-moi vos questions ou choisissez une thématique.
+            </p>
+          )}
+          <div className="mt-4 flex justify-center">
+            <div className="w-full max-w-2xl text-left">
+              <ThematiqueOuQuestionCallout />
+            </div>
+          </div>
         </div>
         <div className="mb-12">
           <h2 className="text-xl font-normal text-[#000000] text-center mb-8">
@@ -435,16 +448,6 @@ export default function AccompagnePage({
             className="fixed left-0 right-0 bottom-24 bg-white z-30 border-t border-gray-200 flex flex-col"
             style={{ top: "var(--app-header-h, 64px)" }}
           >
-            <div className="max-w-4xl mx-auto p-4 border-b border-gray-100 w-full">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-sm">
-                  😊
-                </div>
-                <span className="text-base font-medium text-[#414143]">
-                  Assistant Triptik
-                </span>
-              </div>
-            </div>
             <div className="flex-1 max-w-4xl mx-auto p-6 overflow-y-auto overscroll-contain w-full">
               <SimpleChatDisplay />
             </div>

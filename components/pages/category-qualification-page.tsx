@@ -130,6 +130,11 @@ export default function CategoryQualificationPage({
           type: "input",
           answers: []
         },
+        {
+          question: "Combien d'enfants habitent avec vous ?",
+          type: "input",
+          answers: []
+        },
       ]
     }
 
@@ -614,8 +619,7 @@ export default function CategoryQualificationPage({
               onClick={handleInitialAccept}
               className="bg-[#919191] hover:bg-gray-600 text-white px-6 py-2 rounded-full flex items-center gap-2"
             >
-              <span>👍</span>
-              <span>D'accord</span>
+              <span>J’ai compris, commencer le questionnaire</span>
             </Button>
           </div>
         </div>,
@@ -929,17 +933,22 @@ export default function CategoryQualificationPage({
       <div className="mb-4"></div>
       <ChatInput
         theme={category}
-        placeholder={skipQualification || isQuestionnaireFinished ? `Posez votre question sur ${category}...` : "Répondez à la question ou posez votre propre question..."}
+        disabled={showInitialMessage}
+        placeholder={
+          showInitialMessage
+            ? "Cliquez sur « D'accord, commencer » pour lancer le questionnaire."
+            : skipQualification || isQuestionnaireFinished
+            ? `Posez votre question sur ${category}...`
+            : "Répondez à la question ou posez votre propre question..."
+        }
         onSendMessage={(message: string) => {
           if (!skipQualification) {
             if (showInitialMessage) {
               if (message.toLowerCase().includes("d'accord")) {
                 handleInitialAccept()
                 return true
-              } else if (message.trim()) {
-                setSkipQualification(true)
-                return false
               }
+              return true
             } else if (currentStep < qualificationSteps.length) {
               const current = qualificationSteps[editingIndex ?? currentStep]
               if (current.type === "input") {
